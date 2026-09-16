@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<StackPane styleClass="simulation-router"
+      xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="application.client.controller.SimulationController">
+    <children>
+        <VBox fx:id="genericSimulation" spacing="14.0" styleClass="simulation-panel">
+            <children>
+                <HBox alignment="CENTER_LEFT" spacing="10.0">
+                    <children>
+                        <Label fx:id="simulationTypeLabel" text="Simulation" styleClass="simulation-title"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Label fx:id="stepLabel" text="0 / 0" styleClass="simulation-step"/>
+                    </children>
+                </HBox>
+                <VBox fx:id="inputEditor" managed="false" spacing="7.0" visible="false"
+                      styleClass="simulation-input-editor">
+                    <children>
+                        <HBox alignment="CENTER_LEFT" spacing="8.0">
+                            <children>
+                                <Label text="INPUT" styleClass="control-label"/>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <Button fx:id="applyInputsButton" mnemonicParsing="false"
+                                        onAction="#applyInputs" text="Apply inputs"
+                                        styleClass="primary-button"/>
+                                <Button fx:id="restoreInputsButton" mnemonicParsing="false" onAction="#restoreExampleInputs"
+                                        text="Restore example" styleClass="secondary-button"/>
+                            </children>
+                        </HBox>
+                        <FlowPane fx:id="inputControlsPane" alignment="CENTER_LEFT"
+                                  hgap="9.0" prefWrapLength="760.0" vgap="7.0"/>
+                        <Label fx:id="inputStatusLabel" managed="false" visible="false"
+                               wrapText="true" styleClass="simulation-input-status"/>
+                    </children>
+                </VBox>
+                <Pane fx:id="visualizationPane" minHeight="180.0" styleClass="simulation-canvas"/>
+                <Label fx:id="simulationMessageLabel" minHeight="42.0" wrapText="true"
+                       styleClass="simulation-message"/>
+                <HBox alignment="CENTER_LEFT" spacing="9.0">
+                    <children>
+                        <Button fx:id="previousButton" mnemonicParsing="false" onAction="#previousStep"
+                                text="Previous" styleClass="secondary-button"/>
+                        <Button fx:id="playButton" mnemonicParsing="false" onAction="#togglePlay"
+                                text="Play" styleClass="primary-button"/>
+                        <Button fx:id="nextButton" mnemonicParsing="false" onAction="#nextStep"
+                                text="Next" styleClass="secondary-button"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Button mnemonicParsing="false" onAction="#reset" text="Restart"
+                                styleClass="text-button"/>
+                    </children>
+                </HBox>
+                <VBox fx:id="pseudocodeBox" spacing="3.0" styleClass="simulation-code"/>
+            </children>
+            <padding>
+                <Insets bottom="18.0" left="18.0" right="18.0" top="18.0"/>
+            </padding>
+        </VBox>
+        <fx:include fx:id="graphSimulation" source="GraphSimulationView.fxml"/>
+    </children>
+</StackPane>

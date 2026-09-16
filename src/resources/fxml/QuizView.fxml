@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.RadioButton?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox prefHeight="520.0" prefWidth="620.0" spacing="16.0" styleClass="quiz-root"
+      xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="application.client.controller.QuizController">
+    <fx:define>
+        <ToggleGroup fx:id="answerGroup"/>
+    </fx:define>
+    <children>
+        <Label fx:id="quizLessonLabel" styleClass="quiz-lesson"/>
+        <Separator/>
+        <VBox fx:id="questionPane" spacing="13.0" VBox.vgrow="ALWAYS">
+            <children>
+                <Label fx:id="quizProgressLabel" styleClass="section-eyebrow"/>
+                <Label fx:id="questionLabel" wrapText="true" styleClass="quiz-question"/>
+                <RadioButton fx:id="optionA" maxWidth="1.7976931348623157E308"
+                             toggleGroup="$answerGroup" wrapText="true" styleClass="quiz-option"/>
+                <RadioButton fx:id="optionB" maxWidth="1.7976931348623157E308"
+                             toggleGroup="$answerGroup" wrapText="true" styleClass="quiz-option"/>
+                <RadioButton fx:id="optionC" maxWidth="1.7976931348623157E308"
+                             toggleGroup="$answerGroup" wrapText="true" styleClass="quiz-option"/>
+                <RadioButton fx:id="optionD" maxWidth="1.7976931348623157E308"
+                             toggleGroup="$answerGroup" wrapText="true" styleClass="quiz-option"/>
+                <Region VBox.vgrow="ALWAYS"/>
+                <Label fx:id="feedbackLabel" minHeight="22.0" wrapText="true" styleClass="auth-error"/>
+                <Button fx:id="actionButton" maxWidth="1.7976931348623157E308"
+                        mnemonicParsing="false" onAction="#advance" text="Next question"
+                        styleClass="primary-button"/>
+            </children>
+        </VBox>
+        <VBox fx:id="resultPane" alignment="CENTER" managed="false" spacing="14.0"
+              visible="false" VBox.vgrow="ALWAYS">
+            <children>
+                <Label text="Quiz complete" styleClass="quiz-result-title"/>
+                <Label fx:id="resultScoreLabel" styleClass="quiz-result-score"/>
+                <VBox fx:id="resultFeedbackBox" spacing="7.0"/>
+                <Button mnemonicParsing="false" onAction="#close" text="Return to lesson"
+                        styleClass="primary-button"/>
+            </children>
+        </VBox>
+    </children>
+    <padding>
+        <Insets bottom="26.0" left="28.0" right="28.0" top="26.0"/>
+    </padding>
+</VBox>

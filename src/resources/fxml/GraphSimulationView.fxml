@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.Slider?>
+<?import javafx.scene.control.Spinner?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane minHeight="620.0" minWidth="640.0" prefHeight="680.0" prefWidth="900.0"
+            maxWidth="1.7976931348623157E308" styleClass="algorithm-root"
+            xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="application.client.controller.GraphSimulationController">
+    <top>
+        <VBox spacing="12.0" styleClass="algorithm-header">
+            <padding>
+                <Insets bottom="16.0" left="22.0" right="22.0" top="18.0"/>
+            </padding>
+            <children>
+                <HBox alignment="CENTER_LEFT" spacing="14.0">
+                    <children>
+                        <VBox spacing="3.0" HBox.hgrow="ALWAYS">
+                            <children>
+                                <Label text="ALGORITHM LAB" styleClass="eyebrow"/>
+                                <Label text="Graph Algorithm Visualizer" styleClass="algorithm-page-title"/>
+                                <Label text="Follow each decision as the algorithm explores a weighted graph."
+                                       styleClass="algorithm-page-subtitle" wrapText="true"/>
+                            </children>
+                        </VBox>
+                        <HBox alignment="CENTER_LEFT" spacing="7.0" styleClass="algorithm-legend">
+                            <children>
+                                <Label text="Selected" styleClass="legend-item, legend-selected"/>
+                                <Label text="Considering" styleClass="legend-item, legend-active"/>
+                                <Label text="Rejected" styleClass="legend-item, legend-rejected"/>
+                            </children>
+                        </HBox>
+                    </children>
+                </HBox>
+                <HBox alignment="CENTER_LEFT" spacing="9.0" styleClass="algorithm-controls">
+                    <children>
+                        <VBox spacing="4.0">
+                            <children>
+                                <Label text="ALGORITHM" styleClass="control-label"/>
+                                <ComboBox fx:id="algorithmSelector" prefWidth="150.0" styleClass="algorithm-combo"/>
+                            </children>
+                        </VBox>
+                        <VBox spacing="4.0">
+                            <children>
+                                <Label fx:id="startVertexLabel" text="START VERTEX" styleClass="control-label"/>
+                                <ComboBox fx:id="startVertexSelector" prefWidth="92.0" styleClass="algorithm-combo"/>
+                            </children>
+                        </VBox>
+                        <Separator orientation="VERTICAL" prefHeight="42.0"/>
+                        <Button fx:id="playPauseButton" mnemonicParsing="false" onAction="#togglePlayback"
+                                text="Play" styleClass="primary-button"/>
+                        <Button mnemonicParsing="false" onAction="#resetVisualization" text="Reset"
+                                styleClass="secondary-button"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <VBox spacing="3.0" minWidth="150.0">
+                            <children>
+                                <HBox alignment="CENTER_LEFT">
+                                    <children>
+                                        <Label text="SPEED" styleClass="control-label"/>
+                                        <Region HBox.hgrow="ALWAYS"/>
+                                        <Label fx:id="speedLabel" text="1.0x" styleClass="speed-value"/>
+                                    </children>
+                                </HBox>
+                                <Slider fx:id="speedSlider" blockIncrement="0.2" majorTickUnit="0.5"
+                                        max="2.0" min="0.5" prefWidth="150.0" value="1.0"/>
+                            </children>
+                        </VBox>
+                    </children>
+                </HBox>
+            </children>
+        </VBox>
+    </top>
+    <center>
+        <SplitPane dividerPositions="0.65" minHeight="470.0" styleClass="algorithm-split">
+            <items>
+                <VBox minWidth="390.0" spacing="0.0" styleClass="graph-panel">
+                    <children>
+                        <VBox spacing="5.0" styleClass="graph-editor">
+                            <children>
+                                <FlowPane alignment="CENTER_LEFT" hgap="6.0" vgap="6.0" prefWrapLength="580.0">
+                                    <children>
+                                        <Label text="EDIT GRAPH" styleClass="control-label"/>
+                                        <ToggleButton fx:id="moveModeButton" mnemonicParsing="false" text="Move"
+                                                      styleClass="editor-mode-button"/>
+                                        <ToggleButton fx:id="addVertexModeButton" mnemonicParsing="false" text="Add vertex"
+                                                      styleClass="editor-mode-button"/>
+                                        <ToggleButton fx:id="addEdgeModeButton" mnemonicParsing="false" text="Add edge"
+                                                      styleClass="editor-mode-button"/>
+                                        <ToggleButton fx:id="deleteModeButton" mnemonicParsing="false" text="Delete"
+                                                      styleClass="editor-mode-button"/>
+                                        <Separator orientation="VERTICAL" prefHeight="30.0"/>
+                                        <Label text="WEIGHT" styleClass="control-label"/>
+                                        <Spinner fx:id="edgeWeightSpinner" editable="false" prefWidth="68.0"
+                                                 styleClass="edge-weight-spinner"/>
+                                        <CheckBox fx:id="directedEdgeCheckBox" mnemonicParsing="false" text="Directed"
+                                                  styleClass="edge-direction-check"/>
+                                        <Button fx:id="newGraphButton" mnemonicParsing="false" onAction="#startBlankGraph"
+                                                text="New graph" styleClass="ghost-button"/>
+                                        <Button fx:id="restoreSampleButton" mnemonicParsing="false"
+                                                onAction="#restoreSampleGraph" text="Restore sample"
+                                                styleClass="ghost-button"/>
+                                    </children>
+                                </FlowPane>
+                                <Label fx:id="editorStatusLabel" text="Sample graph" styleClass="editor-status"/>
+                            </children>
+                            <padding>
+                                <Insets bottom="8.0" left="12.0" right="12.0" top="8.0"/>
+                            </padding>
+                        </VBox>
+                        <Pane fx:id="graphPane" minHeight="370.0" minWidth="360.0"
+                              styleClass="graph-canvas" VBox.vgrow="ALWAYS"/>
+                        <HBox alignment="CENTER" spacing="9.0" styleClass="step-navigation">
+                            <children>
+                                <Button fx:id="previousStepButton" mnemonicParsing="false"
+                                        onAction="#showPreviousStep" text="Previous step"
+                                        styleClass="secondary-button"/>
+                                <Label fx:id="stepCounterLabel" minWidth="120.0" text="STEP 1 OF 1"
+                                       textAlignment="CENTER" styleClass="step-counter"/>
+                                <Button fx:id="nextStepButton" mnemonicParsing="false"
+                                        onAction="#showNextStep" text="Next step"
+                                        styleClass="primary-button"/>
+                            </children>
+                            <padding>
+                                <Insets bottom="12.0" left="12.0" right="12.0" top="10.0"/>
+                            </padding>
+                        </HBox>
+                    </children>
+                </VBox>
+                <VBox minWidth="220.0" spacing="9.0" styleClass="algorithm-inspector">
+                    <padding>
+                        <Insets bottom="14.0" left="16.0" right="16.0" top="14.0"/>
+                    </padding>
+                    <children>
+                        <Label fx:id="algorithmTitleLabel" maxWidth="1.7976931348623157E308"
+                               text="Dijkstra's shortest path" wrapText="true" styleClass="inspector-title"/>
+                        <Label fx:id="algorithmDescriptionLabel" maxWidth="1.7976931348623157E308"
+                               minHeight="42.0" wrapText="true" styleClass="inspector-description"/>
+                        <Label fx:id="complexityLabel" maxWidth="1.7976931348623157E308"
+                               wrapText="true" styleClass="complexity-label"/>
+                        <Separator/>
+                        <Label text="CURRENT DECISION" styleClass="control-label"/>
+                        <Label fx:id="stepMessageLabel" maxWidth="1.7976931348623157E308"
+                               minHeight="52.0" wrapText="true" styleClass="step-message"/>
+                        <Label text="PSEUDOCODE" styleClass="control-label"/>
+                        <VBox fx:id="graphPseudocodeBox" spacing="2.0" styleClass="pseudocode-box"/>
+                        <HBox alignment="CENTER_LEFT">
+                            <children>
+                                <Label text="STATE" styleClass="control-label"/>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <Label fx:id="totalWeightLabel" text="0 tree edges" styleClass="total-weight"/>
+                            </children>
+                        </HBox>
+                        <ListView fx:id="valuesList" focusTraversable="false"
+                                  styleClass="algorithm-values-list" VBox.vgrow="ALWAYS"/>
+                    </children>
+                </VBox>
+            </items>
+        </SplitPane>
+    </center>
+</BorderPane>

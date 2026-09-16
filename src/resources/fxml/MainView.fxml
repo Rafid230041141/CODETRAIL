@@ -1,0 +1,709 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.ProgressBar?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.control.TreeView?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<StackPane fx:id="appRoot" prefHeight="820.0" prefWidth="1280.0" styleClass="app-root"
+           xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="application.client.controller.AppController">
+    <children>
+        <StackPane fx:id="loginView" styleClass="auth-screen">
+            <children>
+                <VBox alignment="CENTER" maxWidth="430.0" spacing="15.0" styleClass="auth-panel">
+                    <children>
+                        <StackPane>
+                            <children>
+                                <VBox alignment="CENTER" spacing="8.0">
+                                    <children>
+                                        <StackPane minHeight="106.0" minWidth="106.0" prefHeight="106.0" prefWidth="106.0"
+                                                   styleClass="brand-mark">
+                                            <children>
+                                                <ImageView fitHeight="96.0" fitWidth="96.0" preserveRatio="true">
+                                                    <image>
+                                                        <Image url="@../images/logo-icon.png"/>
+                                                    </image>
+                                                </ImageView>
+                                            </children>
+                                        </StackPane>
+                                        <HBox alignment="CENTER" spacing="0.0">
+                                            <children>
+                                                <Label fx:id="brandTitleLabel" text="Code" styleClass="brand-title"/>
+                                                <Label fx:id="brandTitleAccentLabel" text="Trail" styleClass="brand-title-accent"/>
+                                            </children>
+                                        </HBox>
+                                        <Label fx:id="brandSubtitleLabel" text="LEARNING PLATFORM" styleClass="brand-subtitle"/>
+                                    </children>
+                                </VBox>
+                                <ToggleButton fx:id="loginThemeToggle" mnemonicParsing="false"
+                                              onAction="#toggleTheme"
+                                              contentDisplay="GRAPHIC_ONLY"
+                                              styleClass="theme-toggle"
+                                              StackPane.alignment="TOP_RIGHT">
+                                    <graphic>
+                                        <ImageView fx:id="loginThemeIcon" fitHeight="17.0" fitWidth="17.0"
+                                                   preserveRatio="true">
+                                            <image>
+                                                <Image url="@../images/icon-moon-dark.png"/>
+                                            </image>
+                                        </ImageView>
+                                    </graphic>
+                                </ToggleButton>
+                            </children>
+                        </StackPane>
+                        <Separator/>
+                        <Label fx:id="authTitleLabel" text="Welcome back" styleClass="auth-title"/>
+                        <Label fx:id="authSubtitleLabel" wrapText="true"
+                               text="Sign in to continue learning." styleClass="auth-subtitle"/>
+                        <TextField fx:id="displayNameField" managed="false" visible="false"
+                                   promptText="Display name" styleClass="form-field"/>
+                        <StackPane fx:id="usernameFieldShell" styleClass="field-shell">
+                            <children>
+                                <ImageView fitHeight="16.0" fitWidth="16.0" preserveRatio="true"
+                                           styleClass="field-icon" StackPane.alignment="CENTER_LEFT">
+                                    <image>
+                                        <Image url="@../images/icon-person.png"/>
+                                    </image>
+                                </ImageView>
+                                <TextField fx:id="usernameField" promptText="Username or Gmail address" styleClass="field-input"/>
+                            </children>
+                        </StackPane>
+                        <StackPane fx:id="passwordFieldShell" styleClass="field-shell">
+                            <children>
+                                <ImageView fitHeight="16.0" fitWidth="16.0" preserveRatio="true"
+                                           styleClass="field-icon" StackPane.alignment="CENTER_LEFT">
+                                    <image>
+                                        <Image url="@../images/icon-lock.png"/>
+                                    </image>
+                                </ImageView>
+                                <PasswordField fx:id="passwordField" promptText="Password" styleClass="field-input"/>
+                                <TextField fx:id="passwordTextField" managed="false" visible="false"
+                                           promptText="Password" styleClass="field-input"/>
+                                <ToggleButton fx:id="passwordVisibilityToggle" mnemonicParsing="false"
+                                              onAction="#togglePasswordVisibility"
+                                              contentDisplay="GRAPHIC_ONLY"
+                                              styleClass="eye-toggle" StackPane.alignment="CENTER_RIGHT">
+                                    <graphic>
+                                        <ImageView fx:id="passwordVisibilityIcon" fitHeight="16.0" fitWidth="16.0"
+                                                   preserveRatio="true">
+                                            <image>
+                                                <Image url="@../images/icon-eye.png"/>
+                                            </image>
+                                        </ImageView>
+                                    </graphic>
+                                </ToggleButton>
+                            </children>
+                        </StackPane>
+                        <HBox fx:id="forgotPasswordRow" alignment="CENTER_RIGHT">
+                            <children>
+                                <Button fx:id="forgotPasswordButton" mnemonicParsing="false"
+                                        onAction="#showForgotPasswordDialog" text="Forgot password?"
+                                        styleClass="forgot-password-link"/>
+                            </children>
+                        </HBox>
+                        <ComboBox fx:id="roleSelector" managed="false" visible="false"
+                                  maxWidth="1.7976931348623157E308" promptText="Role" styleClass="form-field"/>
+                        <Label fx:id="authMessageLabel" minHeight="22.0" wrapText="true"
+                               styleClass="auth-error"/>
+                        <Button fx:id="authPrimaryButton" maxWidth="1.7976931348623157E308"
+                                mnemonicParsing="false" onAction="#submitAuth" text="Sign in"
+                                styleClass="primary-button"/>
+                        <HBox alignment="CENTER" spacing="10.0" styleClass="auth-divider-row">
+                            <children>
+                                <Separator HBox.hgrow="ALWAYS"/>
+                                <Label text="OR" styleClass="auth-divider-text"/>
+                                <Separator HBox.hgrow="ALWAYS"/>
+                            </children>
+                        </HBox>
+                        <Button fx:id="googleAuthButton" maxWidth="1.7976931348623157E308"
+                                mnemonicParsing="false" onAction="#handleGoogleAuth"
+                                styleClass="google-auth-button">
+                            <graphic>
+                                <HBox alignment="CENTER" spacing="10.0">
+                                    <children>
+                                        <ImageView fitHeight="20.0" fitWidth="20.0" preserveRatio="true">
+                                            <image>
+                                                <Image url="@../images/icon-google.png"/>
+                                            </image>
+                                        </ImageView>
+                                        <Label fx:id="googleAuthLabel" text="Continue with Google" styleClass="google-auth-text"/>
+                                    </children>
+                                </HBox>
+                            </graphic>
+                        </Button>
+                        <Button fx:id="authModeButton" maxWidth="1.7976931348623157E308"
+                                mnemonicParsing="false" onAction="#toggleAuthMode"
+                                text="New here? Create account" styleClass="text-button"/>
+                        <Label text="Demo: student / student123 or admin / admin123"
+                               wrapText="true" styleClass="auth-hint"/>
+                    </children>
+                    <padding>
+                        <Insets bottom="28.0" left="30.0" right="30.0" top="28.0"/>
+                    </padding>
+                </VBox>
+            </children>
+            <padding>
+                <Insets bottom="40.0" left="40.0" right="40.0" top="40.0"/>
+            </padding>
+        </StackPane>
+
+        <StackPane fx:id="studentView" managed="false" visible="false">
+            <children>
+                <BorderPane>
+                    <top>
+                        <HBox alignment="CENTER_LEFT" spacing="12.0" styleClass="app-toolbar">
+                            <children>
+                                <StackPane minHeight="36.0" minWidth="36.0" prefHeight="36.0" prefWidth="36.0"
+                                           styleClass="brand-mark">
+                                    <children>
+                                        <ImageView fitHeight="30.0" fitWidth="30.0" preserveRatio="true">
+                                            <image>
+                                                <Image url="@../images/logo-icon.png"/>
+                                            </image>
+                                        </ImageView>
+                                    </children>
+                                </StackPane>
+                                <HBox alignment="CENTER_LEFT" spacing="0.0">
+                                    <children>
+                                        <Label text="Code" styleClass="toolbar-title"/>
+                                        <Label text="Trail" styleClass="brand-title-accent"/>
+                                    </children>
+                                </HBox>
+                                <Label text="STUDENT" styleClass="role-badge"/>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <Button fx:id="studentProfileButton" mnemonicParsing="false"
+                                        onAction="#showProfile" styleClass="toolbar-profile-button">
+                                    <graphic>
+                                        <HBox alignment="CENTER" spacing="8.0">
+                                            <children>
+                                                <ImageView fx:id="studentProfileIcon" fitHeight="26.0" fitWidth="26.0" preserveRatio="true">
+                                                    <image>
+                                                        <Image url="@../images/icon-user-account.png"/>
+                                                    </image>
+                                                </ImageView>
+                                                <Label fx:id="studentNameLabel" styleClass="toolbar-user"/>
+                                            </children>
+                                        </HBox>
+                                    </graphic>
+                                </Button>
+                                <ToggleButton fx:id="studentThemeToggle" mnemonicParsing="false"
+                                              onAction="#toggleTheme"
+                                              contentDisplay="GRAPHIC_ONLY"
+                                              styleClass="theme-toggle">
+                                    <graphic>
+                                        <ImageView fx:id="studentThemeIcon" fitHeight="17.0" fitWidth="17.0"
+                                                   preserveRatio="true">
+                                            <image>
+                                                <Image url="@../images/icon-moon-dark.png"/>
+                                            </image>
+                                        </ImageView>
+                                    </graphic>
+                                </ToggleButton>
+                                <Button fx:id="studentLogoutButton" mnemonicParsing="false"
+                                        onAction="#logout" text="Sign out"
+                                        styleClass="secondary-button"/>
+                            </children>
+                            <padding>
+                                <Insets bottom="14.0" left="20.0" right="20.0" top="14.0"/>
+                            </padding>
+                        </HBox>
+                    </top>
+                    <left>
+                        <VBox prefWidth="310.0" spacing="10.0" styleClass="curriculum-sidebar">
+                            <children>
+                                <Label text="CURRICULUM" styleClass="section-eyebrow"/>
+                                <HBox spacing="6.0">
+                                    <children>
+                                        <Button maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS"
+                                                mnemonicParsing="false" onAction="#showDashboard"
+                                                text="Dashboard" styleClass="sidebar-action"/>
+                                        <Button maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS"
+                                                mnemonicParsing="false" onAction="#showProfile"
+                                                text="Profile" styleClass="sidebar-action-secondary"/>
+                                    </children>
+                                </HBox>
+                                <VBox fx:id="continueSidebarSection" spacing="8.0" styleClass="continue-sidebar-box">
+                                    <children>
+                                        <HBox alignment="CENTER_LEFT">
+                                            <children>
+                                                <Label text="CONTINUE LEARNING" styleClass="continue-sidebar-header"/>
+                                                <Region HBox.hgrow="ALWAYS"/>
+                                                <Label fx:id="continueTrackLabel" text="Languages" styleClass="continue-course-title"/>
+                                            </children>
+                                        </HBox>
+                                        <VBox fx:id="continueItemsBox" spacing="6.0"/>
+                                    </children>
+                                </VBox>
+                                <TreeView fx:id="curriculumTree" VBox.vgrow="ALWAYS"
+                                          styleClass="topic-tree"/>
+                                <Label fx:id="studentStatusLabel" wrapText="true"
+                                       styleClass="sidebar-status"/>
+                            </children>
+                            <padding>
+                                <Insets bottom="18.0" left="18.0" right="18.0" top="18.0"/>
+                            </padding>
+                        </VBox>
+                    </left>
+                    <center>
+                        <StackPane fx:id="studentContent" styleClass="content-stack">
+                            <children>
+                                <ScrollPane fx:id="dashboardPane" fitToWidth="true" hbarPolicy="NEVER"
+                                            styleClass="content-scroll">
+                                    <content>
+                                        <VBox maxWidth="1.7976931348623157E308" spacing="24.0" styleClass="page-content">
+                                            <children>
+                                                <VBox spacing="5.0">
+                                                    <children>
+                                                        <Label text="STUDENT HOME" styleClass="section-eyebrow"/>
+                                                        <Label text="Continue learning" styleClass="page-title"/>
+                                                         <Label text="Choose a course to begin learning: Languages, DSA, Web Dev, App Dev, AI/ML, Data Science, and Game Dev."
+                                                               wrapText="true" styleClass="page-subtitle"/>
+                                                    </children>
+                                                </VBox>
+                                                <FlowPane fx:id="topicCards" hgap="18.0" vgap="18.0"/>
+                                                <VBox spacing="16.0" styleClass="progress-section">
+                                                    <children>
+                                                        <Label text="Overall progress" styleClass="section-title"/>
+                                                        <HBox fx:id="overallProgressRow" alignment="CENTER_LEFT" spacing="24.0">
+                                                            <children>
+                                                                <StackPane fx:id="overallProgressChart"/>
+                                                                <VBox spacing="6.0">
+                                                                    <children>
+                                                                        <Label fx:id="dashboardProgressLabel"
+                                                                               text="Loading progress..."
+                                                                               styleClass="progress-caption" wrapText="true"/>
+                                                                    </children>
+                                                                </VBox>
+                                                            </children>
+                                                        </HBox>
+                                                        <Separator/>
+                                                        <Label text="Progress by topic" styleClass="section-title"/>
+                                                        <FlowPane fx:id="topicProgressBox" hgap="20.0" vgap="16.0"/>
+                                                    </children>
+                                                    <padding>
+                                                        <Insets bottom="22.0" left="22.0" right="22.0" top="22.0"/>
+                                                    </padding>
+                                                </VBox>
+                                            </children>
+                                            <padding>
+                                                <Insets bottom="42.0" left="38.0" right="38.0" top="36.0"/>
+                                            </padding>
+                                        </VBox>
+                                    </content>
+                                </ScrollPane>
+
+                                <ScrollPane fx:id="lessonPane" fitToWidth="true" hbarPolicy="NEVER"
+                                            managed="false" visible="false" styleClass="content-scroll">
+                                    <content>
+                                        <VBox maxWidth="1.7976931348623157E308" spacing="22.0" styleClass="page-content">
+                                            <children>
+                                                <Label fx:id="lessonPathLabel" wrapText="true"
+                                                       styleClass="section-eyebrow"/>
+                                                <Label fx:id="lessonTitleLabel" wrapText="true"
+                                                       styleClass="page-title"/>
+                                                <Label fx:id="lessonSummaryLabel" wrapText="true"
+                                                       styleClass="lesson-summary"/>
+                                                <HBox alignment="CENTER_LEFT" spacing="12.0">
+                                                    <children>
+                                                        <CheckBox fx:id="lessonCompletedCheckBox"
+                                                                  text="Mark lesson complete"
+                                                                  styleClass="completion-check"/>
+                                                         <Region HBox.hgrow="ALWAYS"/>
+                                                         <Button fx:id="lessonWatchVideoBtn" mnemonicParsing="false"
+                                                                 managed="false" visible="false"/>
+                                                         <Button fx:id="lessonCopyVideoBtn" mnemonicParsing="false"
+                                                                 managed="false" visible="false"/>
+                                                         <Button fx:id="quizButton" mnemonicParsing="false"
+                                                                 onAction="#openQuiz" text="Take quiz"
+                                                                 styleClass="primary-button"/>
+                                                    </children>
+                                                </HBox>
+                                                <Separator/>
+                                                <VBox fx:id="lessonVideoContainer" managed="false" visible="false" spacing="10.0" maxWidth="720.0" styleClass="lesson-embedded-video-box">
+                                                    <children>
+                                                        <HBox alignment="CENTER_LEFT" spacing="10.0" styleClass="lesson-video-header-bar">
+                                                            <children>
+                                                                <Label text="🎥 VIDEO LECTURE" styleClass="lesson-video-header-tag"/>
+                                                                <Label fx:id="lessonVideoTitleLabel" text="Web Development Video Lecture" styleClass="lesson-video-header-title" wrapText="true" HBox.hgrow="ALWAYS"/>
+                                                                <Region HBox.hgrow="ALWAYS"/>
+                                                                <Button fx:id="lessonVideoPlayBtn" mnemonicParsing="false" onAction="#startLessonVideo" text="▶ Play Video" styleClass="lesson-video-action-play"/>
+                                                                <Button fx:id="lessonVideoStopBtn" mnemonicParsing="false" onAction="#stopLessonVideo" text="⏹ Stop Video" managed="false" visible="false" styleClass="lesson-video-action-stop"/>
+                                                                <Button fx:id="lessonVideoRewindBtn" mnemonicParsing="false" onAction="#seekLessonVideoBackward" text="⏪ -10s" managed="false" visible="false" styleClass="lesson-video-action-skip"/>
+                                                                <Button fx:id="lessonVideoForwardBtn" mnemonicParsing="false" onAction="#seekLessonVideoForward" text="+10s ⏩" managed="false" visible="false" styleClass="lesson-video-action-skip"/>
+                                                                <Button mnemonicParsing="false" onAction="#openCurrentLessonVideo" text="Open in Browser ↗" styleClass="lesson-video-action-btn"/>
+                                                                <Button fx:id="lessonVideoCopyLinkBtn" mnemonicParsing="false" onAction="#copyCurrentLessonVideo" text="📋 Copy Link" styleClass="lesson-video-action-btn"/>
+                                                            </children>
+                                                        </HBox>
+                                                        <StackPane fx:id="embeddedWebPlayerPane" maxWidth="720.0" prefWidth="640.0" prefHeight="360.0" minHeight="300.0" maxHeight="380.0" styleClass="embedded-player-frame" onMouseClicked="#startLessonVideo">
+                                                            <children>
+                                                                <ImageView fx:id="lessonVideoPoster" fitWidth="720.0" fitHeight="360.0" preserveRatio="true" styleClass="lesson-video-poster"/>
+                                                                <Region fx:id="lessonPosterOverlay" styleClass="lesson-video-poster-overlay" mouseTransparent="true"/>
+                                                                <VBox fx:id="lessonPlayPromptBox" alignment="CENTER" spacing="10.0" mouseTransparent="true">
+                                                                    <children>
+                                                                        <StackPane fx:id="lessonPlayCircleBtn" styleClass="lesson-video-play-circle">
+                                                                            <children>
+                                                                                <Label text="▶" styleClass="lesson-video-play-glyph"/>
+                                                                            </children>
+                                                                        </StackPane>
+                                                                        <Label text="Click to Play Embedded Video (Cloud Streamed)" styleClass="lesson-video-play-prompt"/>
+                                                                    </children>
+                                                                </VBox>
+                                                            </children>
+                                                        </StackPane>
+                                                    </children>
+                                                </VBox>
+                                                <VBox fx:id="simulationSection" spacing="10.0">
+                                                    <children>
+                                                        <Label text="Interactive simulation"
+                                                               styleClass="section-title"/>
+                                                        <fx:include fx:id="simulationContent"
+                                                                    source="SimulationView.fxml"/>
+                                                    </children>
+                                                </VBox>
+                                                <VBox fx:id="markdownContent" spacing="11.0"/>
+                                                <VBox spacing="8.0">
+                                                    <children>
+                                                        <Label text="Example" styleClass="section-title"/>
+                                                        <TextArea fx:id="lessonExampleArea" editable="false"
+                                                                  prefRowCount="8" wrapText="false"
+                                                                  styleClass="lesson-code"/>
+                                                    </children>
+                                                </VBox>
+                                            </children>
+                                            <padding>
+                                                <Insets bottom="52.0" left="42.0" right="42.0" top="36.0"/>
+                                            </padding>
+                                        </VBox>
+                                    </content>
+                                </ScrollPane>
+
+                                <ScrollPane fx:id="profilePane" fitToWidth="true" hbarPolicy="NEVER"
+                                            managed="false" visible="false" styleClass="content-scroll">
+                                    <content>
+                                        <VBox maxWidth="1.7976931348623157E308" spacing="24.0" styleClass="page-content">
+                                            <children>
+                                                <HBox alignment="CENTER_LEFT" spacing="20.0" styleClass="profile-header-card">
+                                                    <children>
+                                                        <StackPane minHeight="72.0" minWidth="72.0" prefHeight="72.0" prefWidth="72.0" styleClass="profile-avatar-large">
+                                                            <children>
+                                                                <ImageView fx:id="profileAvatarIcon" fitHeight="54.0" fitWidth="54.0" preserveRatio="true">
+                                                                    <image>
+                                                                        <Image url="@../images/icon-user-account.png"/>
+                                                                    </image>
+                                                                </ImageView>
+                                                            </children>
+                                                        </StackPane>
+                                                        <VBox spacing="4.0" HBox.hgrow="ALWAYS">
+                                                            <children>
+                                                                <HBox alignment="CENTER_LEFT" spacing="10.0">
+                                                                    <children>
+                                                                        <Label fx:id="profileDisplayNameLabel" text="Student Name" styleClass="profile-name-title"/>
+                                                                        <Label text="STUDENT" styleClass="role-badge"/>
+                                                                    </children>
+                                                                </HBox>
+                                                                <Label fx:id="profileUsernameLabel" text="@student" styleClass="profile-username-subtitle"/>
+                                                                <Label text="Local CodeTrail Account • Learning Active" styleClass="profile-account-tag"/>
+                                                            </children>
+                                                        </VBox>
+                                                        <Button mnemonicParsing="false" onAction="#showDashboard" text="Back to Dashboard" styleClass="primary-button"/>
+                                                    </children>
+                                                    <padding>
+                                                        <Insets bottom="24.0" left="26.0" right="26.0" top="24.0"/>
+                                                    </padding>
+                                                </HBox>
+
+                                                <FlowPane hgap="16.0" vgap="16.0">
+                                                    <children>
+                                                        <VBox prefWidth="220.0" spacing="6.0" styleClass="profile-stat-box">
+                                                            <children>
+                                                                <Label text="LESSONS COMPLETED" styleClass="stat-box-title"/>
+                                                                <Label fx:id="profileCompletedLessonsLabel" text="0 / 0" styleClass="stat-box-value"/>
+                                                                <Label text="Total progress across all modules" styleClass="stat-box-hint"/>
+                                                            </children>
+                                                            <padding>
+                                                                <Insets bottom="16.0" left="16.0" right="16.0" top="16.0"/>
+                                                            </padding>
+                                                        </VBox>
+                                                        <VBox prefWidth="220.0" spacing="6.0" styleClass="profile-stat-box">
+                                                            <children>
+                                                                <Label text="COMPLETION RATE" styleClass="stat-box-title"/>
+                                                                <Label fx:id="profileProgressPercentLabel" text="0%" styleClass="stat-box-value"/>
+                                                                <ProgressBar fx:id="profileProgressBar" maxWidth="1.7976931348623157E308" progress="0.0" styleClass="profile-mini-progress"/>
+                                                            </children>
+                                                            <padding>
+                                                                <Insets bottom="16.0" left="16.0" right="16.0" top="16.0"/>
+                                                            </padding>
+                                                        </VBox>
+                                                        <VBox prefWidth="220.0" spacing="6.0" styleClass="profile-stat-box">
+                                                            <children>
+                                                                <Label text="QUIZ ATTEMPTS" styleClass="stat-box-title"/>
+                                                                <Label fx:id="profileQuizAttemptsLabel" text="0" styleClass="stat-box-value"/>
+                                                                <Label text="Knowledge check assessments" styleClass="stat-box-hint"/>
+                                                            </children>
+                                                            <padding>
+                                                                <Insets bottom="16.0" left="16.0" right="16.0" top="16.0"/>
+                                                            </padding>
+                                                        </VBox>
+                                                        <VBox prefWidth="220.0" spacing="6.0" styleClass="profile-stat-box">
+                                                            <children>
+                                                                <Label text="ACTIVE COURSES" styleClass="stat-box-title"/>
+                                                                <Label fx:id="profileCoursesCountLabel" text="7" styleClass="stat-box-value"/>
+                                                                <Label text="Enrolled curriculum tracks" styleClass="stat-box-hint"/>
+                                                            </children>
+                                                            <padding>
+                                                                <Insets bottom="16.0" left="16.0" right="16.0" top="16.0"/>
+                                                            </padding>
+                                                        </VBox>
+                                                    </children>
+                                                </FlowPane>
+
+                                                <VBox spacing="16.0" styleClass="profile-card">
+                                                    <children>
+                                                        <Label text="Account Information" styleClass="section-title"/>
+                                                        <VBox spacing="10.0">
+                                                            <children>
+                                                                <HBox alignment="CENTER_LEFT" spacing="16.0">
+                                                                    <children>
+                                                                        <Label minWidth="130.0" text="Display Name:" styleClass="profile-field-name"/>
+                                                                        <Label fx:id="profileDetailDisplayName" text="Student" styleClass="profile-field-value"/>
+                                                                    </children>
+                                                                </HBox>
+                                                                <HBox alignment="CENTER_LEFT" spacing="16.0">
+                                                                    <children>
+                                                                        <Label minWidth="130.0" text="Username:" styleClass="profile-field-name"/>
+                                                                        <Label fx:id="profileDetailUsername" text="student" styleClass="profile-field-value"/>
+                                                                    </children>
+                                                                </HBox>
+                                                                <HBox alignment="CENTER_LEFT" spacing="16.0">
+                                                                    <children>
+                                                                        <Label minWidth="130.0" text="Role:" styleClass="profile-field-name"/>
+                                                                        <Label fx:id="profileDetailRole" text="STUDENT" styleClass="profile-field-value"/>
+                                                                    </children>
+                                                                </HBox>
+                                                                <HBox alignment="CENTER_LEFT" spacing="16.0">
+                                                                    <children>
+                                                                        <Label minWidth="130.0" text="Account Status:" styleClass="profile-field-name"/>
+                                                                        <Label text="Active" styleClass="profile-status-active"/>
+                                                                    </children>
+                                                                </HBox>
+                                                            </children>
+                                                        </VBox>
+                                                    </children>
+                                                    <padding>
+                                                        <Insets bottom="22.0" left="22.0" right="22.0" top="22.0"/>
+                                                    </padding>
+                                                </VBox>
+
+                                                <VBox spacing="16.0" styleClass="profile-card">
+                                                    <children>
+                                                        <Label text="My Course Progress" styleClass="section-title"/>
+                                                        <FlowPane fx:id="profileTopicProgressBox" hgap="20.0" vgap="16.0"/>
+                                                    </children>
+                                                    <padding>
+                                                        <Insets bottom="22.0" left="22.0" right="22.0" top="22.0"/>
+                                                    </padding>
+                                                </VBox>
+                                            </children>
+                                            <padding>
+                                                <Insets bottom="42.0" left="38.0" right="38.0" top="36.0"/>
+                                            </padding>
+                                        </VBox>
+                                    </content>
+                                </ScrollPane>
+
+                                <!-- Topic Overview Side Drawer (matching media_1789143578584.png) -->
+                                <Pane fx:id="topicDrawerScrim" managed="false" visible="false"
+                                      onMouseClicked="#closeTopicDrawer" styleClass="topic-drawer-scrim"/>
+
+                                <VBox fx:id="topicDrawerPane" managed="false" visible="false"
+                                      maxWidth="520.0" prefWidth="500.0"
+                                      StackPane.alignment="CENTER_RIGHT"
+                                      styleClass="topic-drawer-pane">
+                                    <children>
+                                        <!-- Top Thumbnail Image (The Blue Box in user's sketch) -->
+                                        <StackPane styleClass="topic-drawer-banner-box">
+                                            <children>
+                                                 <ImageView fx:id="topicDrawerImage" fitHeight="285.0" fitWidth="500.0"
+                                                            preserveRatio="true"/>
+                                                <Button mnemonicParsing="false" onAction="#closeTopicDrawer"
+                                                        text="✕" StackPane.alignment="TOP_RIGHT"
+                                                        styleClass="topic-drawer-close-btn">
+                                                    <StackPane.margin>
+                                                        <Insets right="14.0" top="14.0"/>
+                                                    </StackPane.margin>
+                                                </Button>
+                                            </children>
+                                        </StackPane>
+
+                                        <!-- Content Details (The Dark Box in user's sketch) -->
+                                        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" VBox.vgrow="ALWAYS"
+                                                    styleClass="topic-drawer-scroll">
+                                            <content>
+                                                <VBox spacing="18.0" styleClass="topic-drawer-content">
+                                                    <children>
+                                                        <VBox spacing="6.0">
+                                                            <children>
+                                                                <Label text="COURSE OVERVIEW" styleClass="topic-drawer-eyebrow"/>
+                                                                <Label fx:id="topicDrawerTitle" text="Course Title" wrapText="true"
+                                                                       styleClass="topic-drawer-title"/>
+                                                            </children>
+                                                        </VBox>
+
+                                                        <HBox spacing="10.0" styleClass="topic-drawer-badges">
+                                                            <children>
+                                                                <Label fx:id="topicDrawerLessonsBadge" text="0 Lessons"
+                                                                       styleClass="topic-drawer-badge"/>
+                                                                <Label fx:id="topicDrawerModulesBadge" text="0 Modules"
+                                                                       styleClass="topic-drawer-badge-secondary"/>
+                                                                <Label text="Hands-on Practice" styleClass="topic-drawer-badge"/>
+                                                            </children>
+                                                        </HBox>
+
+                                                        <VBox spacing="8.0">
+                                                            <children>
+                                                                <Label text="What You Will Learn" styleClass="topic-drawer-section-heading"/>
+                                                                <Label fx:id="topicDrawerWhatTaught" text="Course curriculum details..."
+                                                                       wrapText="true" styleClass="topic-drawer-body-text"/>
+                                                            </children>
+                                                        </VBox>
+
+                                                        <Separator/>
+
+                                                        <VBox spacing="8.0">
+                                                            <children>
+                                                                <Label text="Why This Matters in the Real World"
+                                                                       styleClass="topic-drawer-section-heading"/>
+                                                                <Label fx:id="topicDrawerRealWorld" text="Real-world engineering impact..."
+                                                                       wrapText="true" styleClass="topic-drawer-body-text"/>
+                                                            </children>
+                                                        </VBox>
+                                                    </children>
+                                                </VBox>
+                                            </content>
+                                        </ScrollPane>
+
+                                        <!-- Sticky Bottom Bar with Centered Start Learning Button -->
+                                        <VBox styleClass="topic-drawer-footer">
+                                            <children>
+                                                <Button fx:id="topicDrawerStartButton" maxWidth="1.7976931348623157E308"
+                                                        mnemonicParsing="false" onAction="#handleTopicDrawerStart"
+                                                        text="Start learning" styleClass="topic-drawer-start-btn"/>
+                                            </children>
+                                        </VBox>
+                                    </children>
+                                </VBox>
+                            </children>
+                        </StackPane>
+                    </center>
+                </BorderPane>
+            </children>
+        </StackPane>
+
+        <StackPane fx:id="adminView" managed="false" visible="false">
+            <children>
+                <BorderPane>
+                    <top>
+                        <HBox alignment="CENTER_LEFT" spacing="12.0" styleClass="app-toolbar">
+                            <children>
+                                <StackPane minHeight="36.0" minWidth="36.0" prefHeight="36.0" prefWidth="36.0"
+                                           styleClass="brand-mark">
+                                    <children>
+                                        <ImageView fitHeight="30.0" fitWidth="30.0" preserveRatio="true">
+                                            <image>
+                                                <Image url="@../images/logo-icon.png"/>
+                                            </image>
+                                        </ImageView>
+                                    </children>
+                                </StackPane>
+                                <HBox alignment="CENTER_LEFT" spacing="0.0">
+                                    <children>
+                                        <Label text="Code" styleClass="toolbar-title"/>
+                                        <Label text="Trail" styleClass="brand-title-accent"/>
+                                    </children>
+                                </HBox>
+                                <Label text="ADMIN" styleClass="admin-role-badge"/>
+                                <Region HBox.hgrow="ALWAYS"/>
+                                <Label fx:id="adminNameLabel" styleClass="toolbar-user"/>
+                                <ToggleButton fx:id="adminThemeToggle" mnemonicParsing="false"
+                                              onAction="#toggleTheme"
+                                              contentDisplay="GRAPHIC_ONLY"
+                                              styleClass="theme-toggle">
+                                    <graphic>
+                                        <ImageView fx:id="adminThemeIcon" fitHeight="17.0" fitWidth="17.0"
+                                                   preserveRatio="true">
+                                            <image>
+                                                <Image url="@../images/icon-moon-dark.png"/>
+                                            </image>
+                                        </ImageView>
+                                    </graphic>
+                                </ToggleButton>
+                                <Button fx:id="adminLogoutButton" mnemonicParsing="false"
+                                        onAction="#logout" text="Sign out"
+                                        styleClass="secondary-button"/>
+                            </children>
+                            <padding>
+                                <Insets bottom="14.0" left="20.0" right="20.0" top="14.0"/>
+                            </padding>
+                        </HBox>
+                    </top>
+                    <center>
+                        <VBox spacing="18.0" styleClass="page-content">
+                            <children>
+                                <HBox alignment="CENTER_LEFT">
+                                    <children>
+                                        <VBox spacing="5.0">
+                                            <children>
+                                                <Label text="ADMINISTRATION" styleClass="section-eyebrow"/>
+                                                <Label text="Student progress" styleClass="page-title"/>
+                                                <Label text="Live account, completion, and quiz data from PostgreSQL."
+                                                       styleClass="page-subtitle"/>
+                                            </children>
+                                        </VBox>
+                                        <Region HBox.hgrow="ALWAYS"/>
+                                        <Button mnemonicParsing="false" onAction="#refreshAdminUsers"
+                                                text="Refresh" styleClass="primary-button"/>
+                                    </children>
+                                </HBox>
+                                <TableView fx:id="usersTable" VBox.vgrow="ALWAYS" styleClass="admin-table">
+                                    <columns>
+                                        <TableColumn fx:id="usernameColumn" prefWidth="170.0" text="Username"/>
+                                        <TableColumn fx:id="displayNameColumn" prefWidth="230.0" text="Display name"/>
+                                        <TableColumn fx:id="roleColumn" prefWidth="120.0" text="Role"/>
+                                        <TableColumn fx:id="progressColumn" prefWidth="170.0" text="Lessons complete"/>
+                                        <TableColumn fx:id="quizAttemptsColumn" prefWidth="130.0" text="Quiz attempts"/>
+                                    </columns>
+                                </TableView>
+                                <Label fx:id="adminStatusLabel" styleClass="page-subtitle"/>
+                            </children>
+                            <padding>
+                                <Insets bottom="34.0" left="36.0" right="36.0" top="34.0"/>
+                            </padding>
+                        </VBox>
+                    </center>
+                </BorderPane>
+            </children>
+        </StackPane>
+    </children>
+</StackPane>

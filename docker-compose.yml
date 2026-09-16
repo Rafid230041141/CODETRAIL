@@ -1,0 +1,19 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: codetrail
+      POSTGRES_USER: codetrail
+      POSTGRES_PASSWORD: codetrail
+    ports:
+      - "5432:5432"
+    volumes:
+      - codetrail-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U codetrail -d codetrail"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+volumes:
+  codetrail-postgres:
