@@ -2,6 +2,8 @@ package application.client.view;
 
 import java.awt.Desktop;
 import java.net.URI;
+import application.client.dsa.judge.DsaProblemArenaWindow;
+import application.client.dsa.judge.ProgrammingLanguage;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -210,7 +212,7 @@ public class WebDevTopicsWindow {
             new WebDevTopic(
                     "deploy",
                     "PHASE 8 • PRODUCTION DEVOPS & CLOUD",
-                    "🚀",
+                    "☁️",
                     "Full-Stack DevOps & Cloud Deployment",
                     "4 Lessons",
                     "Ship complete applications into production. Master environment configuration (.env), Docker containerization, CI/CD automated deployment pipelines, cloud hosting, and SSL.",
@@ -725,6 +727,7 @@ public class WebDevTopicsWindow {
 
         Button startButton = new Button("Start learning");
         startButton.getStyleClass().add("start-learning-button");
+        HBox.setHgrow(startButton, Priority.ALWAYS);
         startButton.setMaxWidth(Double.MAX_VALUE);
         startButton.setOnAction(event -> {
             event.consume();
@@ -734,7 +737,18 @@ public class WebDevTopicsWindow {
             }
         });
 
-        VBox body = new VBox(8.0, titleRow, descLabel, startButton);
+        Button exercisesButton = new Button("Exercises");
+        exercisesButton.getStyleClass().add("topic-card-exercise-btn");
+        exercisesButton.setOnAction(event -> {
+            event.consume();
+            boolean isDark = stage.getScene() != null && stage.getScene().getRoot().getStyleClass().contains("dark-theme");
+            DsaProblemArenaWindow.show(stage, isDark, topic.moduleKey(), null, ProgrammingLanguage.JAVASCRIPT);
+        });
+
+        HBox btnRow = new HBox(6, startButton, exercisesButton);
+        btnRow.setAlignment(Pos.CENTER);
+
+        VBox body = new VBox(8.0, titleRow, descLabel, btnRow);
         body.getStyleClass().add("topic-card-body");
         VBox.setVgrow(body, Priority.ALWAYS);
 

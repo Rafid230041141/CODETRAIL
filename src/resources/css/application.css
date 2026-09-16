@@ -5,6 +5,31 @@
     -fx-accent: #0089fc;
     -fx-focus-color: #0089fc;
     -fx-faint-focus-color: rgba(0, 137, 252, 0.15);
+
+    /* CodeTrail design tokens */
+    -ct-background: #F3F5F9;
+    -ct-panel: #FFFFFF;
+    -ct-raised: #E9EEF6;
+    -ct-input: #FFFFFF;
+    -ct-border: #B6C1D1;
+    -ct-subtle: #DFE5EF;
+    -ct-text: #182235;
+    -ct-muted: #5F6C80;
+    -ct-accent: #2563EB;
+    -ct-accent-strong: #1D4ED8;
+    -ct-on-accent: #FFFFFF;
+    -ct-selected: #E3EDFF;
+    -ct-selected-text: #1D4A9D;
+    -ct-current: #FFF0C2;
+    -ct-current-text: #704700;
+    -ct-current-border: #AC730B;
+    -ct-success: #216640;
+    -ct-success-bg: #E6F3E9;
+    -ct-error: #A23237;
+    -ct-error-bg: #FBE9E7;
+    -ct-code-bg: #1B2332;
+    -ct-code-text: #EAF0FA;
+    -ct-code-muted: #ACBAD0;
 }
 
 /*
@@ -455,13 +480,14 @@
 }
 
 .sidebar-action {
-    -fx-alignment: center-left;
-    -fx-background-color: #18313b;
+    -fx-alignment: center;
+    -fx-background-color: #0089fc;
     -fx-text-fill: #ffffff;
 }
 
 .sidebar-action:hover {
-    -fx-background-color: #102630;
+    -fx-background-color: #0072d6;
+    -fx-text-fill: #ffffff;
 }
 
 .sidebar-status {
@@ -859,6 +885,35 @@
     -fx-text-fill: #43545d;
 }
 
+.quiz-timer-badge {
+    -fx-font-size: 15px;
+    -fx-font-weight: 800;
+    -fx-text-fill: #b91c1c;
+    -fx-background-color: #fee2e2;
+    -fx-background-radius: 999px;
+    -fx-border-color: #fca5a5;
+    -fx-border-radius: 999px;
+    -fx-padding: 5px 14px;
+}
+
+.quiz-timer-normal {
+    -fx-text-fill: #1d4ed8;
+    -fx-background-color: #eff6ff;
+    -fx-border-color: #bfdbfe;
+}
+
+.quiz-result-passed {
+    -fx-text-fill: #15803d;
+    -fx-font-size: 15px;
+    -fx-font-weight: 800;
+}
+
+.quiz-result-failed {
+    -fx-text-fill: #b91c1c;
+    -fx-font-size: 15px;
+    -fx-font-weight: 800;
+}
+
 .admin-table {
     -fx-background-color: #ffffff;
     -fx-border-color: #d8e0e3;
@@ -893,6 +948,31 @@
 .dark-theme .content-scroll > .viewport,
 .dark-theme.quiz-root {
     -fx-background-color: #151b1e;
+
+    /* CodeTrail dark tokens */
+    -ct-background: #161A22;
+    -ct-panel: #202631;
+    -ct-raised: #2C3442;
+    -ct-input: #1A202A;
+    -ct-border: #62718A;
+    -ct-subtle: #354052;
+    -ct-text: #EDF2FA;
+    -ct-muted: #B2BED0;
+    -ct-accent: #79ACFF;
+    -ct-accent-strong: #9CC1FF;
+    -ct-on-accent: #102442;
+    -ct-selected: #243C5E;
+    -ct-selected-text: #D8E8FF;
+    -ct-current: #5B451D;
+    -ct-current-text: #FFE0A0;
+    -ct-current-border: #CEA449;
+    -ct-success: #A7EBC1;
+    -ct-success-bg: #204A3B;
+    -ct-error: #FFBBB4;
+    -ct-error-bg: #502D34;
+    -ct-code-bg: #181F2B;
+    -ct-code-text: #EDF2FA;
+    -ct-code-muted: #B2BED0;
 }
 
 /* Dark Theme Sleek Scrollbars */
@@ -2250,6 +2330,17 @@
     -fx-border-color: #4fb2ff;
 }
 
+.dark-theme .sidebar-action {
+    -fx-alignment: center;
+    -fx-background-color: #0089fc;
+    -fx-text-fill: #ffffff;
+}
+
+.dark-theme .sidebar-action:hover {
+    -fx-background-color: #0072d6;
+    -fx-text-fill: #ffffff;
+}
+
 .dark-theme .sidebar-action-secondary {
     -fx-background-color: #242f36;
     -fx-text-fill: #edf3f5;
@@ -2379,31 +2470,64 @@
 }
 
 .topic-drawer-badge {
-    -fx-background-color: #e6f4ea;
+    -fx-background-color: #f1f5f9;
     -fx-background-radius: 6px;
-    -fx-text-fill: #0d6832;
+    -fx-border-color: #94a3b8;
+    -fx-border-radius: 6px;
+    -fx-border-width: 1px;
+    -fx-text-fill: #0f172a;
     -fx-font-size: 11.5px;
     -fx-font-weight: 700;
     -fx-padding: 4px 10px;
 }
 
 .dark-theme .topic-drawer-badge {
-    -fx-background-color: #173322;
-    -fx-text-fill: #4ade80;
+    -fx-background-color: #1e293b;
+    -fx-border-color: #ffffff;
+    -fx-border-radius: 6px;
+    -fx-border-width: 1.5px;
+    -fx-text-fill: #ffffff;
 }
 
 .topic-drawer-badge-secondary {
-    -fx-background-color: #e0f2fe;
+    -fx-background-color: #f1f5f9;
     -fx-background-radius: 6px;
-    -fx-text-fill: #0369a1;
+    -fx-border-color: #94a3b8;
+    -fx-border-radius: 6px;
+    -fx-border-width: 1px;
+    -fx-text-fill: #0f172a;
     -fx-font-size: 11.5px;
     -fx-font-weight: 700;
     -fx-padding: 4px 10px;
 }
 
 .dark-theme .topic-drawer-badge-secondary {
-    -fx-background-color: #12283a;
-    -fx-text-fill: #38bdf8;
+    -fx-background-color: #1e293b;
+    -fx-border-color: #ffffff;
+    -fx-border-radius: 6px;
+    -fx-border-width: 1.5px;
+    -fx-text-fill: #ffffff;
+}
+
+.topic-drawer-badge-compiler {
+    -fx-background-color: #f1f5f9;
+    -fx-background-radius: 6px;
+    -fx-border-color: #94a3b8;
+    -fx-border-radius: 6px;
+    -fx-border-width: 1px;
+    -fx-text-fill: #0f172a;
+    -fx-font-size: 11.5px;
+    -fx-font-weight: 700;
+    -fx-padding: 4px 10px;
+    -fx-cursor: hand;
+}
+
+.dark-theme .topic-drawer-badge-compiler {
+    -fx-background-color: #1e293b;
+    -fx-border-color: #ffffff;
+    -fx-border-radius: 6px;
+    -fx-border-width: 1.5px;
+    -fx-text-fill: #ffffff;
 }
 
 .topic-drawer-section-heading {
@@ -2452,9 +2576,9 @@
 .topic-drawer-start-btn {
     -fx-background-color: #0284c7;
     -fx-text-fill: #ffffff;
-    -fx-font-size: 15px;
+    -fx-font-size: 14px;
     -fx-font-weight: 800;
-    -fx-padding: 12px 28px;
+    -fx-padding: 12px 20px;
     -fx-background-radius: 9px;
     -fx-cursor: hand;
     -fx-effect: dropshadow(gaussian, rgba(2, 132, 199, 0.35), 10, 0.2, 0, 3);
@@ -2463,6 +2587,37 @@
 .topic-drawer-start-btn:hover {
     -fx-background-color: #0369a1;
     -fx-effect: dropshadow(gaussian, rgba(3, 105, 161, 0.45), 14, 0.3, 0, 4);
+}
+
+.topic-drawer-compiler-btn {
+    -fx-background-color: #0f172a;
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 14px;
+    -fx-font-weight: 800;
+    -fx-padding: 12px 20px;
+    -fx-background-radius: 9px;
+    -fx-cursor: hand;
+    -fx-border-color: #334155;
+    -fx-border-radius: 9px;
+    -fx-border-width: 1px;
+}
+
+.topic-drawer-compiler-btn:hover {
+    -fx-background-color: #1e293b;
+    -fx-border-color: #64748b;
+}
+
+.dark-theme .topic-drawer-compiler-btn {
+    -fx-background-color: #1e293b;
+    -fx-border-color: #ffffff;
+    -fx-border-radius: 9px;
+    -fx-border-width: 1.5px;
+    -fx-text-fill: #ffffff;
+}
+
+.dark-theme .topic-drawer-compiler-btn:hover {
+    -fx-background-color: #334155;
+    -fx-border-color: #ffffff;
 }
 
 /* ==========================================================================
@@ -3058,7 +3213,7 @@
    In-Page Embedded Video Player in Lesson View (Streamed Live — 0 MB Disk)
    ------------------------------------------------------------------------- */
 .lesson-embedded-video-box {
-    -fx-max-width: 720px;
+    -fx-max-width: 960px;
     -fx-background-color: #ffffff;
     -fx-border-color: #e2e8f0;
     -fx-border-width: 1.5px;
@@ -3186,11 +3341,11 @@
 }
 
 .embedded-player-frame {
-    -fx-max-width: 720px;
-    -fx-pref-width: 640px;
-    -fx-pref-height: 360px;
-    -fx-min-height: 300px;
-    -fx-max-height: 380px;
+    -fx-max-width: 960px;
+    -fx-pref-width: 860px;
+    -fx-pref-height: 484px;
+    -fx-min-height: 360px;
+    -fx-max-height: 560px;
     -fx-background-color: #0b0f19;
     -fx-border-color: #1e293b;
     -fx-border-radius: 10px;
@@ -3239,4 +3394,605 @@
     -fx-font-weight: 700;
     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.8), 4, 0, 0, 1);
 }
+
+/* =========================================================================
+   DSA ARENA & CODING EXERCISES STYLING
+   ========================================================================= */
+
+/* Button in topic card */
+.topic-card-exercise-btn {
+    -fx-background-color: #edf7ff;
+    -fx-border-color: #0089fc;
+    -fx-border-width: 1.5px;
+    -fx-text-fill: #0089fc;
+    -fx-font-weight: 800;
+    -fx-font-size: 11.5px;
+    -fx-background-radius: 999px;
+    -fx-border-radius: 999px;
+    -fx-cursor: hand;
+    -fx-padding: 8px 14px;
+}
+
+.topic-card-exercise-btn:hover {
+    -fx-background-color: #0089fc;
+    -fx-text-fill: #ffffff;
+}
+
+.dark-theme .topic-card-exercise-btn {
+    -fx-background-color: #162c38;
+    -fx-border-color: #38bdf8;
+    -fx-text-fill: #38bdf8;
+}
+
+.dark-theme .topic-card-exercise-btn:hover {
+    -fx-background-color: #0089fc;
+    -fx-text-fill: #ffffff;
+}
+
+/* Toolbar arena button */
+.dsa-toolbar-arena-btn {
+    -fx-background-color: #edf7ff;
+    -fx-border-color: #0089fc;
+    -fx-border-width: 1.5px;
+    -fx-text-fill: #0089fc;
+    -fx-font-weight: 800;
+    -fx-font-size: 11.5px;
+    -fx-background-radius: 999px;
+    -fx-border-radius: 999px;
+    -fx-cursor: hand;
+    -fx-padding: 5px 14px;
+}
+
+.dsa-toolbar-arena-btn:hover {
+    -fx-background-color: #0089fc;
+    -fx-text-fill: #ffffff;
+}
+
+.dark-theme .dsa-toolbar-arena-btn {
+    -fx-background-color: #163640;
+    -fx-border-color: #38bdf8;
+    -fx-text-fill: #38bdf8;
+}
+
+.dark-theme .dsa-toolbar-arena-btn:hover {
+    -fx-background-color: #0089fc;
+    -fx-text-fill: #ffffff;
+}
+
+/* Footer arena button */
+.dsa-footer-arena-btn {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #0089fc;
+    -fx-border-width: 1.5px;
+    -fx-text-fill: #0089fc;
+    -fx-font-weight: 800;
+    -fx-font-size: 13px;
+    -fx-background-radius: 999px;
+    -fx-border-radius: 999px;
+    -fx-cursor: hand;
+    -fx-padding: 9px 20px;
+}
+
+.dsa-footer-arena-btn:hover {
+    -fx-background-color: #edf7ff;
+}
+
+.dark-theme .dsa-footer-arena-btn {
+    -fx-background-color: #16242c;
+    -fx-border-color: #38bdf8;
+    -fx-text-fill: #38bdf8;
+}
+
+.dark-theme .dsa-footer-arena-btn:hover {
+    -fx-background-color: #1d3544;
+}
+
+/* Sidebar arena button */
+.dsa-sidebar-arena-btn {
+    -fx-background-color: #edf7ff;
+    -fx-border-color: #0089fc;
+    -fx-border-width: 1px;
+    -fx-text-fill: #0089fc;
+    -fx-font-weight: 800;
+    -fx-font-size: 12px;
+    -fx-background-radius: 8px;
+    -fx-border-radius: 8px;
+    -fx-cursor: hand;
+    -fx-padding: 8px 12px;
+}
+
+.dsa-sidebar-arena-btn:hover {
+    -fx-background-color: #0089fc;
+    -fx-text-fill: #ffffff;
+}
+
+.dark-theme .dsa-sidebar-arena-btn {
+    -fx-background-color: #163640;
+    -fx-border-color: #38bdf8;
+    -fx-text-fill: #38bdf8;
+}
+
+.dark-theme .dsa-sidebar-arena-btn:hover {
+    -fx-background-color: #0089fc;
+    -fx-text-fill: #ffffff;
+}
+
+/* ==========================================================================
+   Code Editor: Night Owl / Programiz Dark Theme & Syntax Highlighting
+   ========================================================================== */
+.styled-text-area {
+    -fx-background-color: #1c2130 !important;
+    -fx-font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', Menlo, Monaco, Consolas, monospace !important;
+    -fx-font-size: 13.5px !important;
+    -fx-line-spacing: 5px !important;
+}
+
+.styled-text-area .content {
+    -fx-background-color: #1c2130 !important;
+    -fx-padding: 8px 12px 8px 6px !important;
+}
+
+.styled-text-area .caret {
+    -fx-stroke: #addb67 !important;
+}
+
+.styled-text-area .selection {
+    -fx-fill: #23354d !important;
+}
+
+/* Built-in Line Numbers Gutter */
+.styled-text-area .lineno {
+    -fx-background-color: #1c2130 !important;
+    -fx-text-fill: #484f5d !important;
+    -fx-font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', Menlo, Monaco, Consolas, monospace !important;
+    -fx-font-size: 13.5px !important;
+    -fx-padding: 0 16px 0 10px !important;
+    -fx-alignment: center-right !important;
+    -fx-border-width: 0 !important;
+}
+
+/* Syntax Token Colors (Vivid high-contrast Night Owl / Modern IDE theme) */
+.styled-text-area .preprocessor,
+.code-editor-area .preprocessor {
+    -fx-fill: #e5c07b !important; /* Vivid warm gold / amber for preprocessor directives (#include, #define, #ifdef) */
+    -fx-font-weight: 700 !important;
+}
+
+.styled-text-area .header,
+.code-editor-area .header {
+    -fx-fill: #addb67 !important; /* Fresh bright lime green for header inclusions (<iostream>, <vector>, <string>, etc.) */
+    -fx-font-weight: 600 !important;
+}
+
+.styled-text-area .keyword,
+.code-editor-area .keyword {
+    -fx-fill: #c792ea !important; /* Vivid lilac / purple (class, public, static, void, return, using, namespace) */
+    -fx-font-weight: 700 !important;
+}
+
+.styled-text-area .class-name,
+.code-editor-area .class-name {
+    -fx-fill: #ffcb8b !important; /* Warm peach / golden orange (Main, Solution) */
+    -fx-font-weight: 700 !important;
+}
+
+.styled-text-area .type-name,
+.code-editor-area .type-name {
+    -fx-fill: #3cc9b0 !important; /* Bright teal / cyan (String, int, vector, cin, cout, endl, std) */
+    -fx-font-weight: 600 !important;
+}
+
+.styled-text-area .method-name,
+.code-editor-area .method-name {
+    -fx-fill: #82aaff !important; /* Periwinkle / sky blue (println, main, sync_with_stdio, tie) */
+}
+
+.styled-text-area .string,
+.code-editor-area .string {
+    -fx-fill: #addb67 !important; /* Fresh lime / yellow-green ("Start small. Ship something.") */
+}
+
+.styled-text-area .comment,
+.code-editor-area .comment {
+    -fx-fill: #8898aa !important; /* High-contrast, clean and readable slate blue-gray */
+    -fx-font-style: italic !important;
+}
+
+.styled-text-area .plain,
+.code-editor-area .plain {
+    -fx-fill: #d5deeb !important; /* Crisp soft off-white (System, out, ;, {}, ()) */
+}
+
+/* Scrollbars inside CodeArea */
+.styled-text-area .scroll-bar:vertical,
+.styled-text-area .scroll-bar:horizontal {
+    -fx-background-color: transparent !important;
+}
+
+.styled-text-area .scroll-bar:vertical .thumb,
+.styled-text-area .scroll-bar:horizontal .thumb {
+    -fx-background-color: #283347 !important;
+    -fx-background-radius: 4px !important;
+}
+
+.styled-text-area .scroll-bar:vertical .thumb:hover,
+.styled-text-area .scroll-bar:horizontal .thumb:hover {
+    -fx-background-color: #3f4e6b !important;
+}
+
+.styled-text-area .scroll-bar .track,
+.styled-text-area .scroll-bar .increment-button,
+.styled-text-area .scroll-bar .decrement-button {
+    -fx-background-color: transparent !important;
+    -fx-pref-width: 0 !important;
+    -fx-pref-height: 0 !important;
+    -fx-padding: 0 !important;
+}
+
+/* Fallback TextArea styles */
+.line-number-gutter {
+    -fx-background-color: #1c2130 !important;
+    -fx-border-color: transparent !important;
+    -fx-border-width: 0 !important;
+}
+
+.line-number-gutter .content {
+    -fx-background-color: #1c2130 !important;
+    -fx-padding: 6px 8px 6px 4px !important;
+}
+
+.line-number-gutter .scroll-bar {
+    -fx-pref-width: 0px !important;
+    -fx-max-width: 0px !important;
+    -fx-pref-height: 0px !important;
+    -fx-max-height: 0px !important;
+    -fx-opacity: 0 !important;
+    -fx-padding: 0 !important;
+}
+
+.code-editor-area {
+    -fx-control-inner-background: #1c2130 !important;
+    -fx-text-fill: #d5deeb !important;
+    -fx-highlight-fill: #23354d !important;
+    -fx-highlight-text-fill: #ffffff !important;
+}
+
+.code-editor-area .content {
+    -fx-background-color: #1c2130 !important;
+}
+
+.code-editor-area .caret {
+    -fx-stroke: #addb67 !important;
+}
+
+/* =========================================================================
+   Interactive Lesson Code Playground & Embedded Compiler Console
+   ========================================================================= */
+.lesson-playground-card {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #d1d9e0;
+    -fx-border-radius: 10px;
+    -fx-background-radius: 10px;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 12, 0.1, 0, 4);
+}
+
+.dark-theme .lesson-playground-card {
+    -fx-background-color: #12181f;
+    -fx-border-color: #24323e;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.35), 16, 0.15, 0, 6);
+}
+
+.playground-header {
+    -fx-background-color: #f8fafc;
+    -fx-border-color: #e2e8f0;
+    -fx-border-width: 0 0 1px 0;
+    -fx-background-radius: 10px 10px 0 0;
+}
+
+.dark-theme .playground-header {
+    -fx-background-color: #162029;
+    -fx-border-color: #24323e;
+}
+
+.playground-title {
+    -fx-font-size: 14px;
+    -fx-font-weight: 800;
+    -fx-text-fill: #1e293b;
+}
+
+.dark-theme .playground-title {
+    -fx-text-fill: #f1f5f9;
+}
+
+.playground-lang-badge {
+    -fx-background-color: #e0f2fe;
+    -fx-text-fill: #0369a1;
+    -fx-font-size: 11px;
+    -fx-font-weight: 800;
+    -fx-padding: 3px 8px;
+    -fx-background-radius: 6px;
+}
+
+.dark-theme .playground-lang-badge {
+    -fx-background-color: #0c2d48;
+    -fx-text-fill: #38bdf8;
+}
+
+.playground-run-btn {
+    -fx-background-color: #0089fc;
+    -fx-text-fill: #ffffff;
+    -fx-font-weight: 800;
+    -fx-font-size: 12px;
+    -fx-padding: 6px 14px;
+    -fx-background-radius: 6px;
+    -fx-cursor: hand;
+}
+
+.playground-run-btn:hover {
+    -fx-background-color: #0072d6;
+}
+
+.playground-tool-btn {
+    -fx-background-color: #f1f5f9;
+    -fx-border-color: #cbd5e1;
+    -fx-text-fill: #334155;
+    -fx-font-weight: 700;
+    -fx-font-size: 11px;
+    -fx-padding: 5px 10px;
+    -fx-background-radius: 6px;
+    -fx-cursor: hand;
+}
+
+.playground-tool-btn:hover {
+    -fx-background-color: #e2e8f0;
+}
+
+.dark-theme .playground-tool-btn {
+    -fx-background-color: #1e2c38;
+    -fx-border-color: #334454;
+    -fx-text-fill: #cbd5e1;
+}
+
+.dark-theme .playground-tool-btn:hover {
+    -fx-background-color: #273948;
+}
+
+.playground-arena-btn {
+    -fx-background-color: rgba(99, 102, 241, 0.12);
+    -fx-border-color: #6366f1;
+    -fx-text-fill: #4f46e5;
+    -fx-font-weight: 800;
+    -fx-font-size: 11px;
+    -fx-padding: 5px 12px;
+    -fx-background-radius: 6px;
+    -fx-cursor: hand;
+}
+
+.playground-arena-btn:hover {
+    -fx-background-color: #6366f1;
+    -fx-text-fill: #ffffff;
+}
+
+.dark-theme .playground-arena-btn {
+    -fx-background-color: rgba(99, 102, 241, 0.2);
+    -fx-border-color: #818cf8;
+    -fx-text-fill: #a5b4fc;
+}
+
+.dark-theme .playground-arena-btn:hover {
+    -fx-background-color: #6366f1;
+    -fx-text-fill: #ffffff;
+}
+
+.lesson-playground-editor {
+    -fx-font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    -fx-font-size: 13px;
+    -fx-control-inner-background: #1c2130;
+    -fx-text-fill: #f1f5f9;
+    -fx-highlight-fill: #263852;
+    -fx-highlight-text-fill: #ffffff;
+    -fx-border-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 8px 12px;
+}
+
+.playground-console {
+    -fx-background-color: #0c1015;
+    -fx-border-color: #1e2936;
+    -fx-border-width: 1px 0 0 0;
+    -fx-background-radius: 0 0 10px 10px;
+}
+
+.console-header-bar {
+    -fx-background-color: transparent;
+    -fx-padding: 0 4px 4px 4px;
+}
+
+.console-title {
+    -fx-font-family: 'JetBrains Mono', Consolas, monospace;
+    -fx-font-size: 11px;
+    -fx-font-weight: 800;
+    -fx-text-fill: #94a3b8;
+}
+
+.console-status-tag {
+    -fx-font-size: 11px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #10b981;
+}
+
+.console-clear-btn {
+    -fx-background-color: transparent;
+    -fx-text-fill: #64748b;
+    -fx-font-size: 10px;
+    -fx-font-weight: 700;
+    -fx-cursor: hand;
+    -fx-padding: 2px 6px;
+}
+
+.console-clear-btn:hover {
+    -fx-text-fill: #94a3b8;
+    -fx-background-color: #1e2936;
+    -fx-background-radius: 4px;
+}
+
+.console-output-text {
+    -fx-font-family: 'JetBrains Mono', Consolas, monospace;
+    -fx-font-size: 12px;
+    -fx-control-inner-background: #080c10;
+    -fx-text-fill: #38bdf8;
+    -fx-border-color: #1a232f;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+    -fx-padding: 8px 12px;
+}
+
+/* =========================================================================
+   Lesson Navigation Bar & Back Button
+   ========================================================================= */
+.lesson-nav-bar {
+    -fx-padding: 0 0 4px 0;
+}
+
+.lesson-back-btn {
+    -fx-background-color: #f1f5f9;
+    -fx-border-color: #cbd5e1;
+    -fx-border-radius: 8px;
+    -fx-background-radius: 8px;
+    -fx-text-fill: #334155;
+    -fx-font-size: 13px;
+    -fx-font-weight: 800;
+    -fx-padding: 6px 14px;
+    -fx-cursor: hand;
+}
+
+.lesson-back-btn:hover {
+    -fx-background-color: #e2e8f0;
+    -fx-border-color: #94a3b8;
+    -fx-text-fill: #0f172a;
+}
+
+.dark-theme .lesson-back-btn {
+    -fx-background-color: #1e293b;
+    -fx-border-color: #334155;
+    -fx-text-fill: #cbd5e1;
+}
+
+.dark-theme .lesson-back-btn:hover {
+    -fx-background-color: #334155;
+    -fx-border-color: #475569;
+    -fx-text-fill: #ffffff;
+}
+
+.top-right-back-btn {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-cursor: hand;
+    -fx-padding: 3px;
+    -fx-background-radius: 999px;
+}
+
+.top-right-back-btn:hover {
+    -fx-background-color: rgba(0, 137, 252, 0.2);
+    -fx-background-radius: 999px;
+}
+
+.top-right-back-btn:pressed {
+    -fx-background-color: rgba(0, 137, 252, 0.35);
+    -fx-background-radius: 999px;
+}
+
+/* =========================================================================
+   Spacious Code Playground & Markdown Code Windows
+   ========================================================================= */
+.playground-editor-frame {
+    -fx-background-color: #1c2130;
+    -fx-background-radius: 8px;
+    -fx-border-color: #2e3e50;
+    -fx-border-radius: 8px;
+    -fx-padding: 6px;
+}
+
+.markdown-code-block {
+    -fx-font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+    -fx-font-size: 13px;
+    -fx-control-inner-background: #18242a;
+    -fx-highlight-fill: #0089fc;
+    -fx-highlight-text-fill: #ffffff;
+    -fx-text-fill: #eaf2f3;
+    -fx-border-color: #2a3b45;
+    -fx-border-radius: 8px;
+    -fx-background-radius: 8px;
+    -fx-padding: 8px 12px;
+}
+
+/* =========================================================================
+   Problem Arena & Compiler ComboBox Controls (Language & Topic Selectors)
+   ========================================================================= */
+.arena-lang-combobox,
+.arena-topic-combobox {
+    -fx-background-color: #1e293b !important;
+    -fx-border-color: #475569 !important;
+    -fx-border-width: 1.5px !important;
+    -fx-border-radius: 6px !important;
+    -fx-background-radius: 6px !important;
+}
+
+.arena-lang-combobox:hover,
+.arena-topic-combobox:hover {
+    -fx-border-color: #0089fc !important;
+}
+
+.arena-lang-combobox .combo-box-button-cell,
+.arena-topic-combobox .combo-box-button-cell,
+.arena-lang-combobox .list-cell,
+.arena-topic-combobox .list-cell {
+    -fx-text-fill: #ffffff !important;
+    -fx-font-weight: 700 !important;
+}
+
+.arena-lang-combobox .arrow-button,
+.arena-topic-combobox .arrow-button {
+    -fx-background-color: transparent !important;
+    -fx-padding: 0 6px 0 2px !important;
+}
+
+.arena-lang-combobox .arrow,
+.arena-topic-combobox .arrow {
+    -fx-background-color: #cbd5e1 !important;
+}
+
+.arena-lang-combobox:hover .arrow,
+.arena-topic-combobox:hover .arrow {
+    -fx-background-color: #ffffff !important;
+}
+
+.arena-lang-combobox .list-view,
+.arena-topic-combobox .list-view {
+    -fx-background-color: #1e2638 !important;
+    -fx-border-color: #475569 !important;
+    -fx-border-radius: 6px !important;
+    -fx-background-radius: 6px !important;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.6), 12, 0, 0, 4) !important;
+}
+
+.arena-lang-combobox .list-view .list-cell,
+.arena-topic-combobox .list-view .list-cell {
+    -fx-text-fill: #f1f5f9 !important;
+    -fx-background-color: #1e2638 !important;
+    -fx-font-weight: 600 !important;
+    -fx-padding: 6px 12px !important;
+}
+
+.arena-lang-combobox .list-view .list-cell:hover,
+.arena-topic-combobox .list-view .list-cell:hover,
+.arena-lang-combobox .list-view .list-cell:selected,
+.arena-topic-combobox .list-view .list-cell:selected {
+    -fx-background-color: #2563eb !important;
+    -fx-text-fill: #ffffff !important;
+}
+
+
+
+
 

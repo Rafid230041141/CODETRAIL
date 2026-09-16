@@ -1,0 +1,305 @@
+/* --- CodeTrail Shared Tokens --- */
+.root {
+    -ct-background: #F3F5F9;
+    -ct-panel: #FFFFFF;
+    -ct-raised: #E9EEF6;
+    -ct-input: #FFFFFF;
+    -ct-border: #B6C1D1;
+    -ct-subtle: #DFE5EF;
+    -ct-text: #182235;
+    -ct-muted: #5F6C80;
+    -ct-accent: #2563EB;
+    -ct-accent-strong: #1D4ED8;
+    -ct-on-accent: #FFFFFF;
+    -ct-selected: #E3EDFF;
+    -ct-selected-text: #1D4A9D;
+    -ct-current: #FFF0C2;
+    -ct-current-text: #704700;
+    -ct-current-border: #AC730B;
+    -ct-success: #216640;
+    -ct-success-bg: #E6F3E9;
+    -ct-error: #A23237;
+    -ct-error-bg: #FBE9E7;
+    -ct-code-bg: #1B2332;
+    -ct-code-text: #EAF0FA;
+    -ct-code-muted: #ACBAD0;
+}
+
+.dark-theme, .app-dark {
+    -ct-background: #161A22;
+    -ct-panel: #202631;
+    -ct-raised: #2C3442;
+    -ct-input: #1A202A;
+    -ct-border: #62718A;
+    -ct-subtle: #354052;
+    -ct-text: #EDF2FA;
+    -ct-muted: #B2BED0;
+    -ct-accent: #79ACFF;
+    -ct-accent-strong: #9CC1FF;
+    -ct-on-accent: #102442;
+    -ct-selected: #243C5E;
+    -ct-selected-text: #D8E8FF;
+    -ct-current: #5B451D;
+    -ct-current-text: #FFE0A0;
+    -ct-current-border: #CEA449;
+    -ct-success: #A7EBC1;
+    -ct-success-bg: #204A3B;
+    -ct-error: #FFBBB4;
+    -ct-error-bg: #502D34;
+    -ct-code-bg: #181F2B;
+    -ct-code-text: #EDF2FA;
+    -ct-code-muted: #B2BED0;
+}
+
+/* Button & control base styles */
+.button-primary {
+    -fx-background-color: -ct-accent;
+    -fx-border-color: -ct-accent;
+    -fx-text-fill: -ct-on-accent;
+    -fx-font-weight: bold;
+    -fx-background-radius: 8px;
+    -fx-border-radius: 8px;
+    -fx-padding: 6px 14px;
+    -fx-cursor: hand;
+}
+.button-primary:hover, .button-primary:pressed {
+    -fx-background-color: -ct-accent-strong;
+    -fx-border-color: -ct-accent-strong;
+}
+.button-secondary {
+    -fx-background-color: -ct-panel;
+    -fx-border-color: -ct-border;
+    -fx-text-fill: -ct-accent;
+    -fx-background-radius: 8px;
+    -fx-border-radius: 8px;
+    -fx-padding: 6px 14px;
+    -fx-cursor: hand;
+}
+.button-secondary:hover {
+    -fx-background-color: -ct-raised;
+}
+.button-quiet {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: -ct-accent;
+    -fx-background-radius: 8px;
+    -fx-border-radius: 8px;
+    -fx-padding: 6px 12px;
+    -fx-cursor: hand;
+}
+.button-quiet:hover {
+    -fx-background-color: -ct-raised;
+}
+/* The laptop studio shares one trace between its diagram and algorithm. */
+.simulation-player-root {
+    -fx-background-color: -ct-background;
+    -fx-min-width: 0;
+    -fx-min-height: 0;
+}
+.simulation-header {
+    -fx-padding: 10px 20px 6px 20px;
+    -fx-background-color: -ct-background;
+}
+.simulation-title {
+    -fx-text-fill: -ct-text;
+    -fx-font-size: 25px;
+    -fx-font-weight: 700;
+    -fx-wrap-text: true;
+}
+.simulation-goal-row {
+    -fx-padding: 0 20px 8px 20px;
+    -fx-min-height: 32px;
+}
+.simulation-goal {
+    -fx-font-size: 18px;
+    -fx-text-fill: -ct-text;
+    -fx-font-weight: 400;
+}
+.simulation-goal-row .menu-button { -fx-font-size: 18px; -fx-padding: 4px 10px; }
+.simulation-playback-mode { -fx-font-size: 18px; -fx-min-height: 38px; }
+.simulation-content {
+    -fx-padding: 0 18px 12px 18px;
+    -fx-min-width: 0;
+    -fx-min-height: 0;
+}
+.simulation-split {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+    -fx-border-color: transparent;
+}
+.simulation-split > .split-pane-divider {
+    -fx-background-color: -ct-background;
+    -fx-padding: 3px 5px;
+}
+.simulation-split > .split-pane-divider > .horizontal-grabber,
+.simulation-split > .split-pane-divider > .vertical-grabber {
+    -fx-background-color: -ct-border;
+    -fx-padding: 1px 24px;
+}
+.simulation-single-pane > .split-pane-divider {
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+}
+.simulation-single-pane > .split-pane-divider > .horizontal-grabber,
+.simulation-single-pane > .split-pane-divider > .vertical-grabber {
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+}
+.simulation-canvas-wrap {
+    -fx-background-color: -ct-panel;
+    -fx-background-radius: 12px;
+    -fx-padding: 8px;
+    -fx-border-color: -ct-border;
+    -fx-border-radius: 12px;
+    -fx-min-height: 0;
+}
+.simulation-code-panel {
+    -fx-background-color: -ct-panel;
+    -fx-background-radius: 12px;
+    -fx-padding: 16px 12px;
+    -fx-min-height: 0;
+}
+.simulation-panel-title {
+    -fx-font-size: 21px;
+    -fx-font-weight: 700;
+    -fx-text-fill: -ct-text;
+}
+.simulation-panel-kicker,
+.simulation-meta,
+.simulation-code-hint {
+    -fx-font-size: 15px;
+    -fx-text-fill: -ct-muted;
+}
+.simulation-code-scroll,
+.simulation-code-scroll > .viewport,
+.simulation-pseudocode {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 0;
+    -fx-min-width: 0;
+    -fx-min-height: 0;
+}
+.simulation-pseudocode { -fx-spacing: 2px; }
+.simulation-code-line {
+    -fx-background-color: transparent;
+    -fx-background-radius: 7px;
+    -fx-padding: 4px 6px;
+    -fx-min-width: 0;
+    -fx-alignment: TOP_LEFT;
+}
+.simulation-code-line-number {
+    -fx-font-size: 14px;
+    -fx-font-weight: 400;
+    -fx-text-fill: -ct-muted;
+    -fx-padding: 3px 0 0 0;
+}
+.simulation-code-line-text {
+    -fx-font-size: 19px;
+    -fx-font-weight: 400;
+    -fx-text-fill: -ct-text;
+    -fx-line-spacing: 3px;
+    -fx-wrap-text: true;
+    -fx-padding: 0;
+}
+.simulation-code-line-active { -fx-background-color: -ct-current; }
+.simulation-code-line-active .simulation-code-line-number,
+.simulation-code-line-active .simulation-code-line-text { -fx-text-fill: -ct-current-text; }
+.simulation-legend { -fx-padding: 8px 4px 0 4px; }
+.simulation-legend-item { -fx-text-fill: -ct-muted; -fx-font-size: 14px; }
+.simulation-legend-swatch { -fx-border-color: -ct-muted; -fx-border-width: 1px; -fx-border-radius: 3px; }
+.simulation-dock {
+    -fx-background-color: -ct-panel;
+    -fx-border-color: -ct-border transparent transparent transparent;
+    -fx-border-width: 1px 0 0 0;
+    -fx-padding: 8px 20px 12px 20px;
+}
+.simulation-narration-row { -fx-padding: 0 0 6px 0; }
+.simulation-step {
+    -fx-text-fill: -ct-accent;
+    -fx-font-size: 18px;
+    -fx-font-weight: 700;
+}
+.simulation-caption {
+    -fx-text-fill: -ct-text;
+    -fx-font-size: 19px;
+    -fx-line-spacing: 1px;
+    -fx-min-height: 46px;
+    -fx-pref-height: 46px;
+    -fx-max-height: 46px;
+    -fx-text-overrun: clip;
+    -fx-cursor: hand;
+}
+.simulation-caption:focused {
+    -fx-border-color: -ct-accent;
+    -fx-border-width: 1px;
+    -fx-border-radius: 6px;
+}
+.simulation-controls { -fx-min-height: 42px; -fx-padding: 0; }
+.simulation-speed-label { -fx-text-fill: -ct-muted; -fx-font-size: 16px; }
+.simulation-status { -fx-text-fill: -ct-muted; -fx-font-size: 16px; -fx-padding: 4px 0 0 0; }
+.simulation-header .toggle-button:selected {
+    -fx-background-color: -ct-selected;
+    -fx-text-fill: -ct-accent;
+    -fx-border-color: -ct-accent;
+}
+.simulation-step-details > .title {
+    -fx-background-color: -ct-raised;
+    -fx-background-radius: 8px;
+    -fx-padding: 10px;
+}
+.simulation-step-details > .title > .text { -fx-fill: -ct-text; -fx-font-size: 16px; }
+.simulation-step-details > .title > .arrow-button > .arrow { -fx-background-color: -ct-muted; }
+.simulation-step-details > .content { -fx-background-color: -ct-panel; -fx-border-color: transparent; }
+.simulation-detail-content { -fx-padding: 10px 4px; }
+.simulation-detail-text { -fx-text-fill: -ct-text; -fx-font-size: 17px; -fx-wrap-text: true; }
+.simulation-input-content {
+    -fx-background-color: -ct-panel;
+    -fx-background-radius: 12px;
+    -fx-padding: 20px 24px;
+}
+.simulation-form-scroll,
+.simulation-form-scroll > .viewport { -fx-background-color: transparent; -fx-min-width: 0; -fx-min-height: 0; }
+.simulation-form-fields { -fx-padding: 8px 16px 16px 0; }
+.simulation-field-label { -fx-font-size: 20px; -fx-font-weight: 700; -fx-text-fill: -ct-text; }
+.simulation-field-help,
+.simulation-input-help { -fx-font-size: 17px; -fx-text-fill: -ct-muted; }
+.simulation-field-input { -fx-font-size: 19px; }
+.simulation-input-error {
+    -fx-text-fill: -ct-error;
+    -fx-background-color: -ct-error-bg;
+    -fx-background-radius: 8px;
+    -fx-font-size: 18px;
+    -fx-padding: 10px;
+}
+/* Optional projector mode changes size, never theme or recorded state. */
+.simulation-projector .simulation-title { -fx-font-size: 28px; }
+.simulation-projector .simulation-goal { -fx-font-size: 24px; }
+.simulation-projector .simulation-goal-row .menu-button { -fx-font-size: 24px; }
+.simulation-projector .simulation-goal-row { -fx-padding: 0 12px 4px 12px; }
+.simulation-projector .simulation-playback-mode { -fx-font-size: 24px; }
+.simulation-projector .simulation-code-line-text { -fx-font-size: 26px; }
+.simulation-projector .simulation-code-line-number,
+.simulation-projector .simulation-caption,
+.simulation-projector .simulation-step,
+.simulation-projector .simulation-panel-title,
+.simulation-projector .simulation-panel-kicker,
+.simulation-projector .simulation-detail-text,
+.simulation-projector .simulation-speed-label,
+.simulation-projector .simulation-status,
+.simulation-projector .simulation-legend-item,
+.simulation-projector .simulation-field-label,
+.simulation-projector .simulation-field-help,
+.simulation-projector .simulation-field-input,
+.simulation-projector .simulation-input-help,
+.simulation-projector .simulation-input-error,
+.simulation-projector .button,
+.simulation-projector .toggle-button { -fx-font-size: 24px; }
+.simulation-projector .simulation-step-details > .title > .text { -fx-font-size: 24px; }
+.simulation-projector .simulation-caption { -fx-min-height: 58px; -fx-pref-height: 58px; -fx-max-height: 58px; }
+.simulation-projector .simulation-header { -fx-padding: 6px 12px; }
+.simulation-projector .simulation-content { -fx-padding: 0 6px 6px 6px; }
+.simulation-projector .simulation-canvas-wrap { -fx-padding: 0; }
+.simulation-projector .simulation-dock { -fx-padding: 4px 12px 8px 12px; }
+.simulation-projector .simulation-controls { -fx-spacing: 8px; }
+.simulation-projector .button,
+.simulation-projector .toggle-button { -fx-padding: 6px 10px; -fx-min-height: 44px; }

@@ -23,9 +23,11 @@ import application.client.dto.ApiModels.TopicSummary;
 import application.client.dto.ApiModels.TopicTree;
 import application.client.service.ApiClient;
 import application.client.util.MarkdownRenderer;
+import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
+import javafx.util.Duration;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
@@ -50,9 +52,13 @@ import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Separator;
+import javafx.scene.control.Tooltip;
 import java.util.Locale;
+import java.util.Map;
+import java.util.HashMap;
 import javafx.scene.Cursor;
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
@@ -69,6 +75,30 @@ import application.client.view.LanguagesTopicsWindow;
 import application.client.view.AiMlTopicsWindow;
 import application.client.view.DataScienceTopicsWindow;
 import application.client.view.GameDevTopicsWindow;
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.util.prefs.Preferences;
+import javafx.stage.FileChooser;
+import javafx.stage.Window;
+import javafx.scene.shape.Circle;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
+import application.client.dsa.judge.ProgrammingLanguage;
+import application.client.dsa.judge.OnlineJudgeService;
+import application.client.dsa.judge.SubmissionVerdict;
+import application.client.dsa.judge.DsaProblemArenaWindow;
+import application.client.dsa.judge.CodeSyntaxHighlighter;
+import application.client.dsa.judge.CodeCompletionPopup;
+import org.fxmisc.richtext.CodeArea;
+import org.fxmisc.richtext.LineNumberFactory;
+import javafx.geometry.Pos;
+import javafx.geometry.Insets;
+import javafx.scene.layout.Priority;
+import javafx.scene.control.ListCell;
+import javafx.scene.effect.DropShadow;
+import javafx.scene.paint.Color;
 
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
@@ -172,11 +202,23 @@ public final class AppController {
     @FXML
     private Label topicDrawerModulesBadge;
     @FXML
+    private Label topicDrawerCompilerBadge;
+    @FXML
+    private ImageView topicDrawerLessonsIcon;
+    @FXML
+    private ImageView topicDrawerModulesIcon;
+    @FXML
+    private ImageView topicDrawerCompilerIcon;
+    @FXML
+    private ImageView attachAvatarBtnIcon;
+    @FXML
     private Label topicDrawerWhatTaught;
     @FXML
     private Label topicDrawerRealWorld;
     @FXML
     private Button topicDrawerStartButton;
+    @FXML
+    private Button topicDrawerCompilerButton;
     @FXML
     private Label profileAvatarInitial;
     @FXML
@@ -210,6 +252,10 @@ public final class AppController {
     @FXML
     private javafx.scene.layout.FlowPane topicProgressBox;
     @FXML
+    private Button lessonBackBtn;
+    private String lastOpenedTopic = "dsa";
+    private final Map<String, Image> thumbnailCache = new HashMap<>();
+    @FXML
     private Label lessonPathLabel;
     @FXML
     private Label lessonTitleLabel;
@@ -219,6 +265,50 @@ public final class AppController {
     private VBox markdownContent;
     @FXML
     private TextArea lessonExampleArea;
+    @FXML
+    private Button sidebarDashboardBtn;
+    @FXML
+    private Button sidebarProfileBtn;
+    @FXML
+    private StackPane profileAvatarContainer;
+    @FXML
+    private Button attachAvatarBtn;
+    @FXML
+    private VBox examplePlaygroundSection;
+    @FXML
+    private StackPane playgroundEditorContainer;
+    @FXML
+    private Label playgroundLangBadge;
+    @FXML
+    private Button playgroundRunBtn;
+    @FXML
+    private Button playgroundResetBtn;
+    @FXML
+    private Button playgroundCopyBtn;
+    @FXML
+    private Button playgroundArenaBtn;
+    @FXML
+    private VBox playgroundConsoleBox;
+    @FXML
+    private Label playgroundStatusLabel;
+    @FXML
+    private Button clearConsoleBtn;
+    @FXML
+    private TextArea playgroundConsoleArea;
+    private String currentLessonOriginalCode = "";
+    private ProgrammingLanguage currentLessonLanguage = ProgrammingLanguage.PYTHON;
+    private String currentLessonTopicKey = "arrays";
+
+    // Embedded Playground IDE Compiler Frame Components
+    private CodeArea playgroundCodeArea;
+    private Label playgroundFileTabLabel;
+    private Label playgroundBreadcrumbFileLabel;
+    private Label playgroundEditorLangBadge;
+    private Label playgroundStatusLabel2;
+    private ComboBox<ProgrammingLanguage> playgroundLangComboBox;
+    private CodeCompletionPopup playgroundCompletionPopup;
+    private double playgroundFontSize = 13.5;
+    private boolean updatingPlaygroundLanguage = false;
     @FXML
     private CheckBox lessonCompletedCheckBox;
     @FXML
@@ -306,8 +396,9 @@ public final class AppController {
         });
         curriculumTree.getSelectionModel().selectedItemProperty().addListener(
                 (observable, oldItem, selected) -> openNavigationItem(selected));
-        lessonCompletedCheckBox.selectedProperty().addListener(
-                (observable, oldValue, completed) -> saveCompletion(completed));
+        lessonCompletedCheckBox.setMouseTransparent(true);
+        lessonCompletedCheckBox.setFocusTraversable(false);
+        lessonCompletedCheckBox.setTooltip(new Tooltip("Lessons are automatically marked finished when you score at least 4/8 on the quiz."));
 
         usernameColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().username()));
         displayNameColumn.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().displayName()));
@@ -334,6 +425,8 @@ public final class AppController {
             profileTopicProgressBox.widthProperty().addListener((obs, oldVal, newVal) -> updateProfileCardWidths());
             profileTopicProgressBox.prefWrapLengthProperty().bind(profileTopicProgressBox.widthProperty());
         }
+        updateThemeIcons(appRoot.getStyleClass().contains("dark-theme"));
+        initPlaygroundEditor();
         showAuthMode(false);
         showOnly(loginView);
     }
@@ -403,6 +496,14 @@ public final class AppController {
         setVisibleManaged(dashboardPane, true);
         setVisibleManaged(lessonPane, false);
         setVisibleManaged(profilePane, false);
+        if (sidebarDashboardBtn != null) {
+            sidebarDashboardBtn.getStyleClass().removeAll("sidebar-action", "sidebar-action-secondary");
+            sidebarDashboardBtn.getStyleClass().add("sidebar-action");
+        }
+        if (sidebarProfileBtn != null) {
+            sidebarProfileBtn.getStyleClass().removeAll("sidebar-action", "sidebar-action-secondary");
+            sidebarProfileBtn.getStyleClass().add("sidebar-action-secondary");
+        }
         refreshProgress();
     }
 
@@ -413,10 +514,88 @@ public final class AppController {
         setVisibleManaged(dashboardPane, false);
         setVisibleManaged(lessonPane, false);
         setVisibleManaged(profilePane, true);
+        if (sidebarDashboardBtn != null) {
+            sidebarDashboardBtn.getStyleClass().removeAll("sidebar-action", "sidebar-action-secondary");
+            sidebarDashboardBtn.getStyleClass().add("sidebar-action-secondary");
+        }
+        if (sidebarProfileBtn != null) {
+            sidebarProfileBtn.getStyleClass().removeAll("sidebar-action", "sidebar-action-secondary");
+            sidebarProfileBtn.getStyleClass().add("sidebar-action");
+        }
         if (currentSession != null) {
             updateProfileView(currentSession);
+            loadAvatarForUser(currentSession.username());
         }
         refreshProgress();
+    }
+
+    @FXML
+    private void attachStudentAvatar() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Choose Student Profile Photo");
+        fileChooser.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg", "*.gif", "*.webp", "*.bmp")
+        );
+        Window owner = (appRoot != null && appRoot.getScene() != null) ? appRoot.getScene().getWindow() : null;
+        File selectedFile = fileChooser.showOpenDialog(owner);
+        if (selectedFile != null && selectedFile.exists()) {
+            try {
+                Path avatarDir = Path.of(System.getProperty("user.home"), ".gemini", "antigravity", "avatars");
+                Files.createDirectories(avatarDir);
+                String username = (currentSession != null && currentSession.username() != null && !currentSession.username().isBlank())
+                        ? currentSession.username() : "student";
+                Path targetPath = avatarDir.resolve("avatar-" + username + ".png");
+                Files.copy(selectedFile.toPath(), targetPath, StandardCopyOption.REPLACE_EXISTING);
+                Preferences.userNodeForPackage(AppController.class).put("avatar_" + username, targetPath.toAbsolutePath().toString());
+                loadAvatarForUser(username);
+                if (studentStatusLabel != null) {
+                    studentStatusLabel.setText("Profile photo updated successfully!");
+                }
+            } catch (Exception ex) {
+                if (studentStatusLabel != null) {
+                    studentStatusLabel.setText("Failed to save avatar: " + ex.getMessage());
+                }
+            }
+        }
+    }
+
+    private void loadAvatarForUser(String username) {
+        if (username == null || username.isBlank()) username = "student";
+        Path avatarDir = Path.of(System.getProperty("user.home"), ".gemini", "antigravity", "avatars");
+        Path avatarFile = avatarDir.resolve("avatar-" + username + ".png");
+        if (!Files.exists(avatarFile)) {
+            String savedPath = Preferences.userNodeForPackage(AppController.class).get("avatar_" + username, null);
+            if (savedPath != null && !savedPath.isBlank()) {
+                avatarFile = Path.of(savedPath);
+            }
+        }
+        if (Files.exists(avatarFile)) {
+            try {
+                Image userImg = new Image(avatarFile.toUri().toString(), 140, 140, true, true);
+                if (profileAvatarIcon != null) {
+                    profileAvatarIcon.setImage(userImg);
+                    profileAvatarIcon.setFitWidth(70);
+                    profileAvatarIcon.setFitHeight(70);
+                    Circle clipL = new Circle(35, 35, 35);
+                    profileAvatarIcon.setClip(clipL);
+                }
+                if (studentProfileIcon != null) {
+                    studentProfileIcon.setImage(userImg);
+                    studentProfileIcon.setFitWidth(26);
+                    studentProfileIcon.setFitHeight(26);
+                    Circle clipS = new Circle(13, 13, 13);
+                    studentProfileIcon.setClip(clipS);
+                }
+                return;
+            } catch (Throwable ignored) {}
+        }
+        if (profileAvatarIcon != null) {
+            profileAvatarIcon.setClip(null);
+        }
+        if (studentProfileIcon != null) {
+            studentProfileIcon.setClip(null);
+        }
+        updateAccountIcon(appRoot != null && appRoot.getStyleClass().contains("dark-theme"));
     }
 
     private void updateProfileView(AuthResponse session) {
@@ -461,7 +640,7 @@ public final class AppController {
 
     @FXML
     private void openQuiz() {
-        if (currentLesson == null || currentLesson.quizQuestionCount() == 0) {
+        if (currentLesson == null) {
             return;
         }
         try {
@@ -473,13 +652,28 @@ public final class AppController {
             dialog.initModality(Modality.APPLICATION_MODAL);
             dialog.initOwner(appRoot.getScene().getWindow());
             dialog.setTitle(currentLesson.title() + " Quiz");
-            Scene scene = new Scene(root, 620, 520);
+            Scene scene = new Scene(root, 680, 620);
             scene.getStylesheets().add(getClass().getResource("/resources/css/application.css").toExternalForm());
             if (appRoot.getStyleClass().contains("dark-theme")) {
                 root.getStyleClass().add("dark-theme");
             }
             dialog.setScene(scene);
-            controller.start(currentLesson.id(), currentLesson.title(), dialog, this::refreshProgress);
+            controller.start(currentLesson.id(), currentLesson.title(), dialog, () -> {
+                if (currentLesson != null) {
+                    currentLesson = new LessonDetails(
+                            currentLesson.id(), currentLesson.topicId(), currentLesson.title(), currentLesson.summary(),
+                            currentLesson.bodyMarkdown(), currentLesson.exampleCode(), true,
+                            currentLesson.quizQuestionCount(), currentLesson.simulation());
+                    updatingCompletion = true;
+                    lessonCompletedCheckBox.setSelected(true);
+                    lessonCompletedCheckBox.setText("Finished ✓");
+                    lessonCompletedCheckBox.setStyle("-fx-text-fill: #16a34a; -fx-opacity: 1.0; -fx-font-weight: bold;");
+                    updatingCompletion = false;
+                }
+                refreshProgress();
+                refreshTrees();
+                setStudentStatus("🎉 Passed quiz! Lesson marked as finished.");
+            });
             dialog.showAndWait();
         } catch (IOException exception) {
             studentStatusLabel.setText("Quiz could not open: " + exception.getMessage());
@@ -504,6 +698,10 @@ public final class AppController {
             view.setImage(icon);
         }
         updateAccountIcon(dark);
+        updateThemeIcons(dark);
+        if (simulationContentController != null) {
+            simulationContentController.setDarkMode(dark);
+        }
         javafx.scene.control.Tooltip tooltip = new javafx.scene.control.Tooltip(
                 dark ? "Switch to light mode" : "Switch to dark mode");
         for (ToggleButton toggle : List.of(loginThemeToggle, studentThemeToggle, adminThemeToggle)) {
@@ -511,14 +709,45 @@ public final class AppController {
         }
     }
 
+    private void updateThemeIcons(boolean dark) {
+        String photoIconPath = dark ? "/resources/images/icon-photo-dark.png" : "/resources/images/icon-photo.png";
+        String lessonIconPath = dark ? "/resources/images/icon-lesson-dark.png" : "/resources/images/icon-lesson.png";
+        String moduleIconPath = dark ? "/resources/images/icon-module-dark.png" : "/resources/images/icon-module.png";
+        String compilerIconPath = dark ? "/resources/images/icon-compiler-dark.png" : "/resources/images/icon-compiler.png";
+
+        try {
+            if (attachAvatarBtnIcon != null) {
+                attachAvatarBtnIcon.setImage(new javafx.scene.image.Image(getClass().getResource(photoIconPath).toExternalForm()));
+            }
+            if (topicDrawerLessonsIcon != null) {
+                topicDrawerLessonsIcon.setImage(new javafx.scene.image.Image(getClass().getResource(lessonIconPath).toExternalForm()));
+            }
+            if (topicDrawerModulesIcon != null) {
+                topicDrawerModulesIcon.setImage(new javafx.scene.image.Image(getClass().getResource(moduleIconPath).toExternalForm()));
+            }
+            if (topicDrawerCompilerIcon != null) {
+                topicDrawerCompilerIcon.setImage(new javafx.scene.image.Image(getClass().getResource(compilerIconPath).toExternalForm()));
+            }
+        } catch (Exception ignored) {}
+    }
+
     private void updateAccountIcon(boolean dark) {
+        String username = (currentSession != null && currentSession.username() != null && !currentSession.username().isBlank())
+                ? currentSession.username() : "student";
+        Path avatarDir = Path.of(System.getProperty("user.home"), ".gemini", "antigravity", "avatars");
+        Path avatarFile = avatarDir.resolve("avatar-" + username + ".png");
+        if (Files.exists(avatarFile)) {
+            return; // Preserving student custom attached avatar
+        }
         String accountIconPath = dark ? "/resources/images/icon-user-account-dark.png" : "/resources/images/icon-user-account.png";
         javafx.scene.image.Image accountIcon = new javafx.scene.image.Image(
                 getClass().getResource(accountIconPath).toExternalForm());
         if (studentProfileIcon != null) {
+            studentProfileIcon.setClip(null);
             studentProfileIcon.setImage(accountIcon);
         }
         if (profileAvatarIcon != null) {
+            profileAvatarIcon.setClip(null);
             profileAvatarIcon.setImage(accountIcon);
         }
     }
@@ -530,8 +759,19 @@ public final class AppController {
     private void openStudent(AuthResponse session) {
         this.currentSession = session;
         studentNameLabel.setText(session.displayName());
-        updateAccountIcon(appRoot.getStyleClass().contains("dark-theme"));
+        loadAvatarForUser(session.username());
+        boolean isDark = appRoot.getStyleClass().contains("dark-theme");
+        updateAccountIcon(isDark);
+        updateThemeIcons(isDark);
         updateProfileView(session);
+        if (sidebarDashboardBtn != null) {
+            sidebarDashboardBtn.getStyleClass().removeAll("sidebar-action", "sidebar-action-secondary");
+            sidebarDashboardBtn.getStyleClass().add("sidebar-action");
+        }
+        if (sidebarProfileBtn != null) {
+            sidebarProfileBtn.getStyleClass().removeAll("sidebar-action", "sidebar-action-secondary");
+            sidebarProfileBtn.getStyleClass().add("sidebar-action-secondary");
+        }
         showOnly(studentView);
         setStudentStatus("Loading curriculum...");
         apiClient.topics()
@@ -782,8 +1022,8 @@ public final class AppController {
         } else {
             fileName = "topic-languages.jpg";
         }
-        return new javafx.scene.image.Image(
-                getClass().getResource("/resources/images/" + fileName).toExternalForm());
+        return thumbnailCache.computeIfAbsent(fileName, fn ->
+                new javafx.scene.image.Image(getClass().getResource("/resources/images/" + fn).toExternalForm(), true));
     }
 
     @FXML
@@ -810,7 +1050,15 @@ public final class AppController {
             }
         }
         topicDrawerLessonsBadge.setText(lessonCount + (lessonCount == 1 ? " Lesson" : " Lessons"));
+        topicDrawerLessonsBadge.setGraphicTextGap(6.0);
         topicDrawerModulesBadge.setText(moduleCount + (moduleCount == 1 ? " Module" : " Modules"));
+        topicDrawerModulesBadge.setGraphicTextGap(6.0);
+        if (topicDrawerCompilerBadge != null) {
+            topicDrawerCompilerBadge.setGraphicTextGap(6.0);
+        }
+
+        boolean isDark = appRoot != null && appRoot.getStyleClass().contains("dark-theme");
+        updateThemeIcons(isDark);
 
         topicDrawerWhatTaught.setText(getTopicWhatTaught(topic));
         topicDrawerRealWorld.setText(getTopicRealWorld(topic));
@@ -828,6 +1076,46 @@ public final class AppController {
         if (topicDrawerPane != null) {
             setVisibleManaged(topicDrawerPane, false);
         }
+    }
+
+    @FXML
+    private void handleDrawerCompilerClicked() {
+        if (selectedDrawerTopic == null) {
+            return;
+        }
+        String slug = selectedDrawerTopic.slug() == null ? "" : selectedDrawerTopic.slug().toLowerCase(Locale.ROOT);
+        String titleStr = selectedDrawerTopic.title() == null ? "" : selectedDrawerTopic.title().toLowerCase(Locale.ROOT);
+        closeTopicDrawer();
+
+        String topicKey;
+        ProgrammingLanguage lang;
+
+        if (slug.contains("web") || titleStr.contains("web")) {
+            topicKey = "html5";
+            lang = ProgrammingLanguage.JAVASCRIPT;
+        } else if (slug.contains("app") || titleStr.contains("app")) {
+            topicKey = "flutter";
+            lang = ProgrammingLanguage.JAVA;
+        } else if (slug.contains("language") || titleStr.contains("language")) {
+            topicKey = "cpp";
+            lang = ProgrammingLanguage.CPP;
+        } else if (slug.contains("ai") || slug.contains("ml") || titleStr.contains("ai") || titleStr.contains("machine learning")) {
+            topicKey = "ml_foundations";
+            lang = ProgrammingLanguage.PYTHON;
+        } else if (slug.contains("data-science") || slug.contains("science") || titleStr.contains("data science")) {
+            topicKey = "numpy";
+            lang = ProgrammingLanguage.PYTHON;
+        } else if (slug.contains("game") || titleStr.contains("game")) {
+            topicKey = "math_games";
+            lang = ProgrammingLanguage.PYTHON;
+        } else {
+            topicKey = "arrays";
+            lang = ProgrammingLanguage.CPP;
+        }
+
+        boolean isDark = appRoot != null && appRoot.getStyleClass().contains("dark-theme");
+        javafx.stage.Window owner = appRoot != null && appRoot.getScene() != null ? appRoot.getScene().getWindow() : null;
+        DsaProblemArenaWindow.show(owner, isDark, topicKey, null, lang);
     }
 
     @FXML
@@ -906,6 +1194,22 @@ public final class AppController {
         openCurriculumTopicModule("dsa", moduleKeyword);
     }
 
+    public void openDsaProblemArena(String topicKey, String problemId) {
+        openDsaProblemArena(topicKey, problemId, null);
+    }
+
+    public void openDsaProblemArena(String topicKey, String problemId, ProgrammingLanguage initialLanguage) {
+        try {
+            boolean isDark = appRoot != null && appRoot.getStyleClass().contains("dark-theme");
+            javafx.stage.Window owner = (appRoot != null && appRoot.getScene() != null)
+                    ? appRoot.getScene().getWindow() : null;
+            application.client.dsa.judge.DsaProblemArenaWindow.show(owner, isDark, topicKey, problemId, initialLanguage);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            setStudentStatus("Could not open DSA Arena: " + ex.getMessage());
+        }
+    }
+
     private void openLanguagesRoadmapWindow() {
         try {
             boolean isDark = appRoot != null && appRoot.getStyleClass().contains("dark-theme");
@@ -971,6 +1275,7 @@ public final class AppController {
     }
 
     public void openCurriculumTopicModule(String topicKeyword, String moduleKeyword) {
+        this.lastOpenedTopic = topicKeyword;
         if (appRoot != null && appRoot.getScene() != null && appRoot.getScene().getWindow() instanceof Stage mainStage) {
             mainStage.toFront();
             mainStage.requestFocus();
@@ -998,10 +1303,9 @@ public final class AppController {
 
         TreeItem<NavigationItem> targetModuleItem = null;
         if (moduleKeyword != null && !moduleKeyword.isBlank()) {
-            String kw = moduleKeyword.toLowerCase(Locale.ROOT);
             for (TreeItem<NavigationItem> modItem : targetTopicItem.getChildren()) {
-                String modLabel = modItem.getValue().label().toLowerCase(Locale.ROOT);
-                if (modLabel.contains(kw) || kw.contains(modLabel)) {
+                String modLabel = modItem.getValue().label();
+                if (matchesModule(modLabel, moduleKeyword)) {
                     targetModuleItem = modItem;
                     break;
                 }
@@ -1024,6 +1328,156 @@ public final class AppController {
                 openNavigationItem(targetLesson);
             }
         }
+    }
+
+    private boolean matchesModule(String modLabel, String keyword) {
+        if (modLabel == null || keyword == null) {
+            return false;
+        }
+        String ml = modLabel.toLowerCase(Locale.ROOT).trim();
+        String kw = keyword.toLowerCase(Locale.ROOT).trim();
+        if (ml.equals(kw)) {
+            return true;
+        }
+
+        // 1. C++
+        if (kw.equals("cpp") || kw.equals("c++") || kw.contains("c++") || kw.contains("cpp")) {
+            return ml.contains("c++") || ml.contains("cpp");
+        }
+
+        // 2. C language (must match standalone "c", not letters inside words like "scripting")
+        if (kw.equals("c")) {
+            if (ml.contains("c++") || ml.contains("cpp") || ml.contains("c#")) {
+                return false;
+            }
+            return ml.matches(".*\\bc\\b.*") || ml.startsWith("c ") || ml.startsWith("c-");
+        }
+
+        // 3. Java (must not match javascript)
+        if (kw.equals("java")) {
+            return ml.contains("java") && !ml.contains("javascript") && !ml.contains("js");
+        }
+
+        // 4. JavaScript
+        if (kw.equals("javascript") || kw.equals("js")) {
+            return ml.contains("javascript") || ml.contains("modern js") || ml.matches(".*\\bjs\\b.*");
+        }
+
+        // 5. TypeScript
+        if (kw.equals("typescript") || kw.equals("ts")) {
+            return ml.contains("typescript") || ml.matches(".*\\bts\\b.*");
+        }
+
+        // 6. Go / Golang
+        if (kw.equals("golang") || kw.equals("go")) {
+            return ml.contains("golang") || ml.contains("go (golang)") || ml.matches(".*\\bgo\\b.*");
+        }
+
+        // 7. Python
+        if (kw.equals("python") || kw.equals("py")) {
+            return ml.contains("python");
+        }
+
+        // 8. SQL / Relational Databases
+        if (kw.equals("sql") || kw.equals("db") || kw.equals("database") || kw.equals("databases")) {
+            return ml.contains("sql") || ml.contains("database") || ml.contains("relational") || ml.contains("db");
+        }
+
+        // 9. React Native vs React
+        if (kw.equals("reactnative") || kw.equals("react-native") || kw.equals("react native")) {
+            return ml.contains("react native");
+        }
+        if (kw.equals("react")) {
+            return ml.contains("react") && !ml.contains("react native");
+        }
+
+        // 10. AI / ML keys
+        if (kw.equals("ml_foundations")) {
+            return ml.contains("learning foundation") || ml.contains("machine learning");
+        }
+        if (kw.equals("math_ai")) {
+            return ml.contains("math for machine learning") || ml.contains("mathematical");
+        }
+        if (kw.equals("scikit")) {
+            return ml.contains("scikit");
+        }
+        if (kw.equals("deep_learning")) {
+            return ml.contains("deep learning");
+        }
+        if (kw.equals("vision")) {
+            return ml.contains("vision");
+        }
+        if (kw.equals("nlp")) {
+            return ml.contains("natural language") || ml.contains("nlp");
+        }
+        if (kw.equals("genai")) {
+            return ml.contains("generative ai") || ml.contains("llm");
+        }
+        if (kw.equals("mlops")) {
+            return ml.contains("mlops");
+        }
+
+        // 11. Data Science keys
+        if (kw.equals("numpy")) {
+            return ml.contains("numpy");
+        }
+        if (kw.equals("pandas")) {
+            return ml.contains("pandas");
+        }
+        if (kw.equals("eda")) {
+            return ml.contains("exploratory") || ml.contains("eda");
+        }
+        if (kw.equals("statistics")) {
+            return ml.contains("statistic");
+        }
+        if (kw.equals("feature_eng")) {
+            return ml.contains("feature engineering") || ml.contains("feature");
+        }
+        if (kw.equals("bigdata")) {
+            return ml.contains("big data") || ml.contains("spark");
+        }
+        if (kw.equals("sql_analytics")) {
+            return ml.contains("analytics") || ml.contains("warehouses");
+        }
+        if (kw.equals("bi_dashboards")) {
+            return ml.contains("dashboard") || ml.contains("bi &") || ml.contains("streamlit");
+        }
+
+        // 12. Game Dev keys
+        if (kw.equals("math_games")) {
+            return ml.contains("game math");
+        }
+        if (kw.equals("pygame")) {
+            return ml.contains("pygame");
+        }
+        if (kw.equals("unity_basics")) {
+            return ml.contains("unity engine") || ml.contains("unity foundations");
+        }
+        if (kw.equals("unity_3d")) {
+            return ml.contains("unity 3d");
+        }
+        if (kw.equals("unreal")) {
+            return ml.contains("unreal");
+        }
+        if (kw.equals("game_physics")) {
+            return ml.contains("game physics") || ml.contains("physics");
+        }
+        if (kw.equals("audio_vfx")) {
+            return ml.contains("audio") || ml.contains("vfx") || ml.contains("shaders");
+        }
+        if (kw.equals("game_publish")) {
+            return ml.contains("game publish") || ml.contains("optimization") || ml.contains("publishing");
+        }
+
+        // 13. Clean alphanumeric matching (handles underscores, spaces, hyphens)
+        String cleanMl = ml.replaceAll("[^a-z0-9]", "");
+        String cleanKw = kw.replaceAll("[^a-z0-9]", "");
+        if (!cleanKw.isEmpty() && cleanMl.contains(cleanKw)) {
+            return true;
+        }
+
+        // 14. Fallback substring
+        return ml.contains(kw) || kw.contains(ml);
     }
 
     private String getTopicWhatTaught(TopicSummary topic) {
@@ -1306,14 +1760,20 @@ public final class AppController {
         lessonTitleLabel.setText(lesson.title());
         lessonSummaryLabel.setText(lesson.summary());
         MarkdownRenderer.render(lesson.bodyMarkdown(), markdownContent);
-        lessonExampleArea.setText(lesson.exampleCode() == null ? "" : lesson.exampleCode());
-        lessonExampleArea.setManaged(!lessonExampleArea.getText().isBlank());
-        lessonExampleArea.setVisible(!lessonExampleArea.getText().isBlank());
         updatingCompletion = true;
         lessonCompletedCheckBox.setSelected(lesson.completed());
+        lessonCompletedCheckBox.setMouseTransparent(true);
+        lessonCompletedCheckBox.setFocusTraversable(false);
+        if (lesson.completed()) {
+            lessonCompletedCheckBox.setText("Finished ✓");
+            lessonCompletedCheckBox.setStyle("-fx-text-fill: #16a34a; -fx-opacity: 1.0; -fx-font-weight: bold;");
+        } else {
+            lessonCompletedCheckBox.setText("Pass Quiz (≥ 4/8) to Finish");
+            lessonCompletedCheckBox.setStyle("-fx-text-fill: #64748b; -fx-opacity: 0.9;");
+        }
         updatingCompletion = false;
-        quizButton.setDisable(lesson.quizQuestionCount() == 0);
-        quizButton.setText(lesson.quizQuestionCount() == 0 ? "Quiz unavailable" : "Take quiz");
+        quizButton.setDisable(false);
+        quizButton.setText("Take quiz");
 
         String path = pathFor(selected);
         String searchContext = path + " " + lesson.title();
@@ -1328,6 +1788,120 @@ public final class AppController {
         boolean isAi = lowerPath.contains("ai") || lowerPath.contains("machine learning") || isAiMlTopicId(selTopicId);
         boolean isDs = lowerPath.contains("science") || lowerPath.contains("data science") || isDataScienceTopicId(selTopicId);
         boolean isGame = lowerPath.contains("game") || isGameDevTopicId(selTopicId);
+
+        if (isLang) lastOpenedTopic = "language";
+        else if (isWeb) lastOpenedTopic = "web";
+        else if (isApp) lastOpenedTopic = "app";
+        else if (isDsa) lastOpenedTopic = "dsa";
+        else if (isAi) lastOpenedTopic = "ai";
+        else if (isDs) lastOpenedTopic = "science";
+        else if (isGame) lastOpenedTopic = "game";
+
+        ProgrammingLanguage detectedLang = ProgrammingLanguage.PYTHON;
+        String langBadgeText = "Python 3";
+        if (lowerPath.contains("python") || lowerTitle.contains("python")) {
+            detectedLang = ProgrammingLanguage.PYTHON;
+            langBadgeText = "Python 3";
+        } else if (lowerPath.contains("java enterprise") || lowerPath.contains("java") || lowerTitle.contains("java")) {
+            detectedLang = ProgrammingLanguage.JAVA;
+            langBadgeText = "Java";
+        } else if (lowerPath.contains("c++") || lowerTitle.contains("c++") || lowerPath.contains("cpp") || lowerTitle.contains("cpp")) {
+            detectedLang = ProgrammingLanguage.CPP;
+            langBadgeText = "C++";
+        } else if (lowerPath.contains("c systems") || lowerTitle.contains("pointers") || lowerPath.contains("c low level") || lowerTitle.contains(" c ")) {
+            detectedLang = ProgrammingLanguage.C;
+            langBadgeText = "C";
+        } else if (lowerPath.contains("typescript") || lowerPath.contains("javascript") || lowerPath.contains("web") || lowerTitle.contains("js")) {
+            detectedLang = ProgrammingLanguage.JAVASCRIPT;
+            langBadgeText = "JavaScript";
+        } else if (lowerPath.contains("c#") || lowerPath.contains("csharp") || lowerPath.contains(".net")) {
+            detectedLang = ProgrammingLanguage.CSHARP;
+            langBadgeText = "C#";
+        } else if (isDsa) {
+            detectedLang = ProgrammingLanguage.CPP;
+            langBadgeText = "C++ / DSA";
+        }
+
+        currentLessonLanguage = detectedLang;
+        if (playgroundLangBadge != null) {
+            playgroundLangBadge.setText(langBadgeText);
+        }
+
+        if (isLang) {
+            currentLessonTopicKey = "arrays";
+        } else if (isWeb) {
+            if (lowerPath.contains("html")) currentLessonTopicKey = "html5";
+            else if (lowerPath.contains("css")) currentLessonTopicKey = "css3";
+            else if (lowerPath.contains("javascript") || lowerPath.contains("es6") || lowerPath.contains("dom")) currentLessonTopicKey = "javascript";
+            else if (lowerPath.contains("react") || lowerPath.contains("component")) currentLessonTopicKey = "react";
+            else if (lowerPath.contains("node") || lowerPath.contains("express") || lowerPath.contains("backend")) currentLessonTopicKey = "node";
+            else if (lowerPath.contains("database") || lowerPath.contains("postgres") || lowerPath.contains("mongo") || lowerPath.contains("sql")) currentLessonTopicKey = "database";
+            else if (lowerPath.contains("auth") || lowerPath.contains("jwt") || lowerPath.contains("security")) currentLessonTopicKey = "auth";
+            else if (lowerPath.contains("deploy") || lowerPath.contains("docker") || lowerPath.contains("cloud") || lowerPath.contains("devops")) currentLessonTopicKey = "deploy";
+            else currentLessonTopicKey = "html5";
+        } else if (isApp) {
+            if (lowerPath.contains("flutter") || lowerPath.contains("dart")) currentLessonTopicKey = "flutter";
+            else if (lowerPath.contains("react native") || lowerPath.contains("reactnative") || lowerPath.contains("expo")) currentLessonTopicKey = "reactnative";
+            else if (lowerPath.contains("kotlin") || lowerPath.contains("android") || lowerPath.contains("compose")) currentLessonTopicKey = "kotlin";
+            else if (lowerPath.contains("swift") || lowerPath.contains("ios") || lowerPath.contains("apple")) currentLessonTopicKey = "swift";
+            else if (lowerPath.contains("state") || lowerPath.contains("bloc") || lowerPath.contains("riverpod")) currentLessonTopicKey = "statemgmt";
+            else if (lowerPath.contains("api") || lowerPath.contains("firebase") || lowerPath.contains("network")) currentLessonTopicKey = "mobileapi";
+            else if (lowerPath.contains("sqlite") || lowerPath.contains("room") || lowerPath.contains("storage") || lowerPath.contains("realm")) currentLessonTopicKey = "sqlite";
+            else if (lowerPath.contains("publish") || lowerPath.contains("play store") || lowerPath.contains("app store") || lowerPath.contains("ci/cd")) currentLessonTopicKey = "publish";
+            else currentLessonTopicKey = "flutter";
+        } else if (isAi) {
+            if (lowerPath.contains("foundation") || lowerPath.contains("supervised") || lowerPath.contains("ml_foundation")) currentLessonTopicKey = "ml_foundations";
+            else if (lowerPath.contains("linear algebra") || lowerPath.contains("calculus") || lowerPath.contains("math")) currentLessonTopicKey = "math_ai";
+            else if (lowerPath.contains("scikit") || lowerPath.contains("sklearn") || lowerPath.contains("pipeline")) currentLessonTopicKey = "scikit";
+            else if (lowerPath.contains("deep learning") || lowerPath.contains("neural") || lowerPath.contains("pytorch")) currentLessonTopicKey = "deep_learning";
+            else if (lowerPath.contains("vision") || lowerPath.contains("opencv") || lowerPath.contains("cnn")) currentLessonTopicKey = "vision";
+            else if (lowerPath.contains("nlp") || lowerPath.contains("transformer") || lowerPath.contains("bert") || lowerPath.contains("language")) currentLessonTopicKey = "nlp";
+            else if (lowerPath.contains("genai") || lowerPath.contains("generative") || lowerPath.contains("llm") || lowerPath.contains("prompt")) currentLessonTopicKey = "genai";
+            else if (lowerPath.contains("mlops") || lowerPath.contains("mlflow") || lowerPath.contains("deploy")) currentLessonTopicKey = "mlops";
+            else currentLessonTopicKey = "ml_foundations";
+        } else if (isDs) {
+            if (lowerPath.contains("numpy") || lowerPath.contains("scipy") || lowerPath.contains("numerical")) currentLessonTopicKey = "numpy";
+            else if (lowerPath.contains("pandas") || lowerPath.contains("dataframe") || lowerPath.contains("wrangling")) currentLessonTopicKey = "pandas";
+            else if (lowerPath.contains("eda") || lowerPath.contains("visual") || lowerPath.contains("plot") || lowerPath.contains("seaborn")) currentLessonTopicKey = "eda";
+            else if (lowerPath.contains("stat") || lowerPath.contains("hypothesis") || lowerPath.contains("probability")) currentLessonTopicKey = "statistics";
+            else if (lowerPath.contains("feature") || lowerPath.contains("pca") || lowerPath.contains("dimens")) currentLessonTopicKey = "feature_eng";
+            else if (lowerPath.contains("spark") || lowerPath.contains("big") || lowerPath.contains("pyspark")) currentLessonTopicKey = "bigdata";
+            else if (lowerPath.contains("sql") || lowerPath.contains("warehous") || lowerPath.contains("dbt")) currentLessonTopicKey = "sql_analytics";
+            else if (lowerPath.contains("bi") || lowerPath.contains("dashboard") || lowerPath.contains("streamlit")) currentLessonTopicKey = "bi_dashboards";
+            else currentLessonTopicKey = "numpy";
+        } else if (isGame) {
+            if (lowerPath.contains("math") || lowerPath.contains("vector") || lowerPath.contains("loop")) currentLessonTopicKey = "math_games";
+            else if (lowerPath.contains("pygame") || lowerPath.contains("sprite") || lowerPath.contains("2d")) currentLessonTopicKey = "pygame";
+            else if (lowerPath.contains("unity 3d") || lowerPath.contains("unity_3d") || lowerPath.contains("lighting") || lowerPath.contains("terrain")) currentLessonTopicKey = "unity_3d";
+            else if (lowerPath.contains("unity")) currentLessonTopicKey = "unity_basics";
+            else if (lowerPath.contains("unreal") || lowerPath.contains("blueprint")) currentLessonTopicKey = "unreal";
+            else if (lowerPath.contains("physics") || lowerPath.contains("rigidbody") || lowerPath.contains("collision")) currentLessonTopicKey = "game_physics";
+            else if (lowerPath.contains("audio") || lowerPath.contains("vfx") || lowerPath.contains("shader")) currentLessonTopicKey = "audio_vfx";
+            else if (lowerPath.contains("publish") || lowerPath.contains("steam") || lowerPath.contains("optimi")) currentLessonTopicKey = "game_publish";
+            else currentLessonTopicKey = "math_games";
+        } else if (isDsa) {
+            if (lowerPath.contains("link")) currentLessonTopicKey = "linked lists";
+            else if (lowerPath.contains("stack")) currentLessonTopicKey = "stacks";
+            else if (lowerPath.contains("queue")) currentLessonTopicKey = "queues";
+            else if (lowerPath.contains("hash") || lowerPath.contains("map") || lowerPath.contains("set")) currentLessonTopicKey = "hash maps";
+            else if (lowerPath.contains("heap") || lowerPath.contains("priority")) currentLessonTopicKey = "heaps";
+            else if (lowerPath.contains("tree") || lowerPath.contains("bst")) currentLessonTopicKey = "trees";
+            else if (lowerPath.contains("dsu") || lowerPath.contains("disjoint") || lowerPath.contains("union")) currentLessonTopicKey = "dsu";
+            else if (lowerPath.contains("trie")) currentLessonTopicKey = "trie";
+            else if (lowerPath.contains("sort")) currentLessonTopicKey = "sorting algorithms";
+            else if (lowerPath.contains("search")) currentLessonTopicKey = "searching";
+            else if (lowerPath.contains("graph")) currentLessonTopicKey = "graphs";
+            else if (lowerPath.contains("range") || lowerPath.contains("segment") || lowerPath.contains("fenwick")) currentLessonTopicKey = "range queries";
+            else if (lowerPath.contains("paradigm") || lowerPath.contains("dp") || lowerPath.contains("greedy")) currentLessonTopicKey = "algorithmic paradigms";
+            else if (lowerPath.contains("string") || lowerPath.contains("kmp")) currentLessonTopicKey = "string algorithms";
+            else if (lowerPath.contains("math") || lowerPath.contains("number")) currentLessonTopicKey = "mathematics";
+            else currentLessonTopicKey = "arrays";
+        }
+
+        String rawCode = lesson.exampleCode() == null ? "" : lesson.exampleCode();
+        String activeCode = getEnhancedExampleCode(lesson.title(), path, rawCode, detectedLang);
+        setPlaygroundCode(activeCode);
+        clearPlaygroundConsole();
 
         String videoTitle = "";
         if (isWeb) {
@@ -1380,8 +1954,8 @@ public final class AppController {
                 if (thumbUrl != null && lessonVideoPoster != null) {
                     try {
                         lessonVideoPoster.setImage(new Image(thumbUrl, true));
-                        lessonVideoPoster.setFitWidth(720);
-                        lessonVideoPoster.setFitHeight(360);
+                        lessonVideoPoster.setFitWidth(860);
+                        lessonVideoPoster.setFitHeight(484);
                     } catch (Throwable ignored) {}
                 }
                 if (embeddedWebPlayerPane != null) {
@@ -1393,6 +1967,7 @@ public final class AppController {
         boolean hasSimulation = lesson.simulation() != null;
         setVisibleManaged(simulationSection, hasSimulation);
         if (hasSimulation) {
+            simulationContentController.setDarkMode(appRoot != null && appRoot.getStyleClass().contains("dark-theme"));
             simulationContentController.load(lesson.simulation());
         } else {
             simulationContentController.stop();
@@ -1489,10 +2064,10 @@ public final class AppController {
         try {
             if (lessonWebView == null) {
                 lessonWebView = new WebView();
-                lessonWebView.setMaxWidth(720);
-                lessonWebView.setPrefWidth(640);
-                lessonWebView.setPrefHeight(360);
-                lessonWebView.setMaxHeight(380);
+                lessonWebView.setMaxWidth(960);
+                lessonWebView.setPrefWidth(860);
+                lessonWebView.setPrefHeight(484);
+                lessonWebView.setMaxHeight(560);
                 // Desktop Mac Safari User Agent provides broadband buffering and desktop mouse event handling
                 lessonWebView.getEngine().setUserAgent(
                     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.5 Safari/605.1.15"
@@ -1501,7 +2076,10 @@ public final class AppController {
                 lessonWebView.getEngine().locationProperty().addListener((obs, oldVal, newVal) -> {
                     if (newVal != null && !newVal.equals("about:blank")
                             && !newVal.contains("/player")
-                            && !newVal.contains("/embed/")) {
+                            && !newVal.contains("/embed/")
+                            && !newVal.contains("youtube.com")
+                            && !newVal.contains("youtube-nocookie.com")
+                            && !newVal.contains("googlevideo.com")) {
                         Platform.runLater(() -> WebDevTopicsWindow.openUrl(newVal));
                     }
                 });
@@ -1567,11 +2145,41 @@ public final class AppController {
     private void seekLessonVideo(int seconds) {
         if (lessonWebView != null) {
             try {
-                lessonWebView.getEngine().executeScript("if (window.seekBy) window.seekBy(" + seconds + ");");
+                lessonWebView.getEngine().executeScript(
+                    "if (window.seekBy) {\n"
+                    + "  window.seekBy(" + seconds + ");\n"
+                    + "} else {\n"
+                    + "  var ifr = document.querySelector('iframe');\n"
+                    + "  if (ifr && ifr.contentWindow) {\n"
+                    + "    ifr.contentWindow.postMessage(JSON.stringify({event:'command', func:'seekTo', args:[Math.max(0, (window.localCurrentTime || 0) + " + seconds + "), true]}), '*');\n"
+                    + "  }\n"
+                    + "}"
+                );
                 setStudentStatus((seconds > 0 ? "Skipped forward +" : "Rewound ") + Math.abs(seconds) + "s");
             } catch (Throwable t) {
                 t.printStackTrace();
             }
+        }
+    }
+
+    @FXML
+    private void navigateBackFromLesson() {
+        stopLessonVideo();
+        showDashboard();
+        if ("dsa".equalsIgnoreCase(lastOpenedTopic)) {
+            openDsaRoadmapWindow();
+        } else if ("web".equalsIgnoreCase(lastOpenedTopic)) {
+            openWebDevRoadmapWindow();
+        } else if ("app".equalsIgnoreCase(lastOpenedTopic)) {
+            openAppDevRoadmapWindow();
+        } else if ("language".equalsIgnoreCase(lastOpenedTopic) || "languages".equalsIgnoreCase(lastOpenedTopic)) {
+            openLanguagesRoadmapWindow();
+        } else if ("ai".equalsIgnoreCase(lastOpenedTopic)) {
+            openAiMlRoadmapWindow();
+        } else if ("science".equalsIgnoreCase(lastOpenedTopic)) {
+            openDataScienceRoadmapWindow();
+        } else if ("game".equalsIgnoreCase(lastOpenedTopic)) {
+            openGameDevRoadmapWindow();
         }
     }
 
@@ -2082,6 +2690,521 @@ public final class AppController {
             current = current.getCause();
         }
         return current.getMessage() == null ? "The request could not be completed." : current.getMessage();
+    }
+
+    private String getEnhancedExampleCode(String title, String path, String rawCode, ProgrammingLanguage lang) {
+        if (rawCode != null && !rawCode.isBlank() && !rawCode.startsWith("// Exercise: build a minimal")) {
+            return rawCode;
+        }
+        return switch (lang) {
+            case PYTHON -> """
+                    # CodeTrail Interactive Playground: Python 3
+                    # Topic: %s
+
+                    course_name = "Python 3 Programming"
+                    modules = ["Syntax & Types", "Control Flow", "Functions", "OOP", "APIs"]
+
+                    print(f"Running CodeTrail Hands-On Playground")
+                    print(f"Topic: {course_name} -> %s")
+                    print("\\nCore Concepts:")
+                    for idx, mod in enumerate(modules, 1):
+                        print(f"  {idx}. {mod}")
+
+                    # Real computational logic
+                    scores = [88, 94, 76, 98, 85]
+                    average = sum(scores) / len(scores)
+                    print(f"\\nStudent Scores: {scores}")
+                    print(f"Calculated Average: {average:.2f}%% | Top Score: {max(scores)}%%")
+                    """.formatted(title, title);
+            case JAVA -> """
+                    // CodeTrail Interactive Playground: Java Enterprise OOP
+                    // Topic: %s
+
+                    public class Main {
+                        public static void main(String[] args) {
+                            System.out.println("CodeTrail Java Hands-On Playground");
+                            System.out.println("Executing lesson: %s");
+
+                            int[] scores = {85, 92, 78, 96, 88};
+                            int sum = 0;
+                            for (int s : scores) sum += s;
+                            double avg = (double) sum / scores.length;
+                            System.out.printf("Processed %d items. Average score: %.2f%%%n", scores.length, avg);
+                        }
+                    }
+                    """.formatted(title, title);
+            case CPP -> """
+                    // CodeTrail Interactive Playground: Modern C++
+                    // Topic: %s
+
+                    #include <iostream>
+                    #include <vector>
+                    #include <numeric>
+
+                    int main() {
+                        std::cout << "CodeTrail Modern C++ Hands-On Playground\\n";
+                        std::cout << "Topic: %s\\n\\n";
+
+                        std::vector<int> numbers = {10, 25, 45, 70, 100};
+                        int sum = std::accumulate(numbers.begin(), numbers.end(), 0);
+
+                        std::cout << "Items count: " << numbers.size() << "\\n";
+                        std::cout << "Calculated Sum: " << sum << "\\n";
+                        return 0;
+                    }
+                    """.formatted(title, title);
+            case C -> """
+                    // CodeTrail Interactive Playground: C Systems Programming
+                    // Topic: %s
+
+                    #include <stdio.h>
+
+                    int main() {
+                        printf("CodeTrail C Systems Hands-On Playground\\n");
+                        printf("Topic: %s\\n\\n", "%s");
+
+                        int arr[5] = {2, 4, 8, 16, 32};
+                        int sum = 0;
+                        for (int i = 0; i < 5; i++) {
+                            printf("  arr[%d] = %d\\n", i, arr[i]);
+                            sum += arr[i];
+                        }
+                        printf("Total Accumulated Sum: %d\\n", sum);
+                        return 0;
+                    }
+                    """.formatted(title, title);
+            case JAVASCRIPT -> """
+                    // CodeTrail Interactive Playground: JavaScript & Modern Web
+                    // Topic: %s
+
+                    console.log("CodeTrail JavaScript Hands-On Playground");
+                    console.log("Topic: %s");
+
+                    const stack = ["Node.js", "Express", "TypeScript", "React"];
+                    stack.forEach((tech, i) => console.log(`  ${i + 1}. ${tech}`));
+
+                    const metrics = [92, 85, 98, 77, 94];
+                    const avg = metrics.reduce((a, b) => a + b, 0) / metrics.length;
+                    console.log(`\\nPerformance Average: ${avg.toFixed(1)}%%`);
+                    """.formatted(title, title);
+            case CSHARP -> """
+                    // CodeTrail Interactive Playground: C# & .NET Core
+                    // Topic: %s
+
+                    using System;
+
+                    public class Program {
+                        public static void Main() {
+                            Console.WriteLine("CodeTrail C# Hands-On Playground");
+                            Console.WriteLine("Topic: %s");
+
+                            string[] tags = { "LINQ", "Async/Await", "Pattern Matching", "Records" };
+                            foreach (var t in tags) {
+                                Console.WriteLine($"  - {t}");
+                            }
+                        }
+                    }
+                    """.formatted(title, title);
+        };
+    }
+
+    @FXML
+    private void runPlaygroundCode() {
+        String code = getPlaygroundCode();
+        if (code == null || code.isBlank()) {
+            if (playgroundStatusLabel != null) playgroundStatusLabel.setText("Code is empty");
+            return;
+        }
+        if (playgroundRunBtn != null) playgroundRunBtn.setDisable(true);
+        if (playgroundStatusLabel != null) {
+            playgroundStatusLabel.setText("Executing...");
+            playgroundStatusLabel.setStyle("-fx-text-fill: #38bdf8; -fx-font-weight: 800;");
+        }
+        if (playgroundConsoleArea != null) {
+            playgroundConsoleArea.setText("[Compiling and executing " + currentLessonLanguage.displayName() + " code...]\n");
+        }
+
+        OnlineJudgeService.runCustomTestAsync(
+                currentLessonLanguage,
+                code,
+                "",
+                "",
+                5000,
+                result -> Platform.runLater(() -> {
+                    if (playgroundRunBtn != null) playgroundRunBtn.setDisable(false);
+                    if (result == null) {
+                        if (playgroundStatusLabel != null) {
+                            playgroundStatusLabel.setText("Execution Error");
+                            playgroundStatusLabel.setStyle("-fx-text-fill: #ef4444; -fx-font-weight: 800;");
+                        }
+                        if (playgroundConsoleArea != null) playgroundConsoleArea.setText("Execution service unavailable.");
+                        return;
+                    }
+                    if (result.verdict() == SubmissionVerdict.COMPILATION_ERROR) {
+                        if (playgroundStatusLabel != null) {
+                            playgroundStatusLabel.setText("Compilation Error ❌");
+                            playgroundStatusLabel.setStyle("-fx-text-fill: #ef4444; -fx-font-weight: 800;");
+                        }
+                        if (playgroundConsoleArea != null) playgroundConsoleArea.setText(result.errorOutput());
+                    } else if (result.verdict() == SubmissionVerdict.RUNTIME_ERROR) {
+                        if (playgroundStatusLabel != null) {
+                            playgroundStatusLabel.setText("Runtime Error ❌ (" + result.timeMs() + " ms)");
+                            playgroundStatusLabel.setStyle("-fx-text-fill: #ef4444; -fx-font-weight: 800;");
+                        }
+                        String err = result.errorOutput().isBlank() ? (result.actualOutput() + "\nProcess terminated with non-zero exit code.") : result.errorOutput();
+                        if (playgroundConsoleArea != null) playgroundConsoleArea.setText(err);
+                    } else if (result.verdict() == SubmissionVerdict.TIME_LIMIT_EXCEEDED) {
+                        if (playgroundStatusLabel != null) {
+                            playgroundStatusLabel.setText("Time Limit Exceeded ⏱");
+                            playgroundStatusLabel.setStyle("-fx-text-fill: #f59e0b; -fx-font-weight: 800;");
+                        }
+                        if (playgroundConsoleArea != null) playgroundConsoleArea.setText("Execution timed out (> 5.0 seconds).");
+                    } else {
+                        if (playgroundStatusLabel != null) {
+                            playgroundStatusLabel.setText("Success ✅ (" + result.timeMs() + " ms)");
+                            playgroundStatusLabel.setStyle("-fx-text-fill: #10b981; -fx-font-weight: 800;");
+                        }
+                        String out = result.actualOutput();
+                        if (playgroundConsoleArea != null) {
+                            playgroundConsoleArea.setText(out.isBlank() ? "[Process exited with code 0. No stdout output]" : out);
+                        }
+                    }
+                })
+        );
+    }
+
+    @FXML
+    private void resetPlaygroundCode() {
+        setPlaygroundCode(currentLessonOriginalCode);
+        clearPlaygroundConsole();
+    }
+
+    @FXML
+    private void copyPlaygroundCode() {
+        String code = getPlaygroundCode();
+        ClipboardContent content = new ClipboardContent();
+        content.putString(code == null ? "" : code);
+        Clipboard.getSystemClipboard().setContent(content);
+        if (playgroundCopyBtn != null) {
+            playgroundCopyBtn.setText("✓ Copied!");
+            PauseTransition pause = new PauseTransition(Duration.millis(1500));
+            pause.setOnFinished(e -> {
+                if (playgroundCopyBtn != null) playgroundCopyBtn.setText("📋 Copy");
+            });
+            pause.play();
+        }
+    }
+
+    private void initPlaygroundEditor() {
+        if (playgroundEditorContainer == null) return;
+
+        VBox compilerFrame = new VBox();
+        compilerFrame.setStyle(
+                "-fx-background-color: #1c2130;" +
+                "-fx-border-color: #283144;" +
+                "-fx-border-width: 1px;" +
+                "-fx-border-radius: 8px; -fx-background-radius: 8px;"
+        );
+        compilerFrame.setEffect(new DropShadow(12, 0, 4, Color.rgb(0, 0, 0, 0.45)));
+
+        // 1. VS Code Tab Bar (Top)
+        HBox editorTabBar = new HBox(0);
+        editorTabBar.setAlignment(Pos.CENTER_LEFT);
+        editorTabBar.setStyle(
+                "-fx-background-color: #151923;" +
+                "-fx-border-color: #232a3b; -fx-border-width: 0 0 1px 0;" +
+                "-fx-background-radius: 8px 8px 0 0;"
+        );
+
+        // Active File Tab
+        HBox activeTab = new HBox(8);
+        activeTab.setAlignment(Pos.CENTER_LEFT);
+        activeTab.setPadding(new Insets(7, 14, 7, 14));
+        activeTab.setStyle(
+                "-fx-background-color: #1c2130;" +
+                "-fx-border-color: #82aaff #232a3b transparent #232a3b;" +
+                "-fx-border-width: 2px 1px 0 1px;"
+        );
+
+        playgroundFileTabLabel = new Label("</> " + currentLessonLanguage.defaultFileName());
+        playgroundFileTabLabel.setStyle("-fx-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; -fx-font-size: 12px; -fx-font-weight: 700; -fx-text-fill: #ffffff;");
+
+        Label tabCloseIcon = new Label("×");
+        tabCloseIcon.setStyle("-fx-font-size: 13px; -fx-text-fill: #707e94; -fx-cursor: hand;");
+
+        activeTab.getChildren().addAll(playgroundFileTabLabel, tabCloseIcon);
+
+        Region tabSpacer = new Region();
+        HBox.setHgrow(tabSpacer, Priority.ALWAYS);
+
+        // Toolbar actions inside Tab Bar
+        HBox tabActions = new HBox(6);
+        tabActions.setAlignment(Pos.CENTER_RIGHT);
+        tabActions.setPadding(new Insets(0, 10, 0, 0));
+
+        Label langLabel = new Label("Lang:");
+        langLabel.setStyle("-fx-font-size: 11.5px; -fx-font-weight: 800; -fx-text-fill: #cbd5e1;");
+
+        playgroundLangComboBox = new ComboBox<>();
+        playgroundLangComboBox.getItems().addAll(ProgrammingLanguage.values());
+        playgroundLangComboBox.getStyleClass().add("arena-lang-combobox");
+        playgroundLangComboBox.setButtonCell(new ListCell<>() {
+            @Override
+            protected void updateItem(ProgrammingLanguage item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText("");
+                } else {
+                    setText(item.displayName());
+                    setStyle("-fx-text-fill: #ffffff !important; -fx-font-weight: 700 !important; -fx-font-size: 11.5px !important; -fx-background-color: transparent !important;");
+                }
+            }
+        });
+        playgroundLangComboBox.setCellFactory(lv -> new ListCell<>() {
+            @Override
+            protected void updateItem(ProgrammingLanguage item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText("");
+                    setStyle("-fx-background-color: #1e2638;");
+                } else {
+                    setText(item.displayName());
+                    setStyle("-fx-text-fill: #f1f5f9 !important; -fx-font-weight: 600 !important; -fx-font-size: 11.5px !important; -fx-padding: 7px 12px !important; -fx-background-color: #1e2638 !important;");
+                }
+            }
+        });
+        playgroundLangComboBox.getSelectionModel().select(currentLessonLanguage);
+        playgroundLangComboBox.setStyle(
+                "-fx-background-color: #1e293b;" +
+                "-fx-border-color: #475569;" +
+                "-fx-border-width: 1.5px;" +
+                "-fx-border-radius: 6px; -fx-background-radius: 6px;" +
+                "-fx-font-size: 11.5px; -fx-font-weight: 700; -fx-cursor: hand;" +
+                "-fx-text-fill: #ffffff;"
+        );
+        playgroundLangComboBox.setOnAction(e -> {
+            if (updatingPlaygroundLanguage) return;
+            ProgrammingLanguage selected = playgroundLangComboBox.getSelectionModel().getSelectedItem();
+            if (selected != null && selected != currentLessonLanguage) {
+                currentLessonLanguage = selected;
+                updatePlaygroundLanguageViews();
+                if (playgroundLangBadge != null) {
+                    playgroundLangBadge.setText(currentLessonLanguage.displayName());
+                }
+                if (playgroundCodeArea != null) {
+                    CodeSyntaxHighlighter.applyHighlightingAsync(playgroundCodeArea, playgroundCodeArea.getText(), currentLessonLanguage);
+                }
+            }
+        });
+
+        Button resetBtn = new Button("Reset Template");
+        resetBtn.setStyle(
+                "-fx-background-color: #232a3b;" +
+                "-fx-border-color: #30394f;" +
+                "-fx-border-radius: 4px; -fx-background-radius: 4px;" +
+                "-fx-font-size: 10.5px; -fx-font-weight: 600; -fx-text-fill: #d5deeb;" +
+                "-fx-cursor: hand; -fx-padding: 3px 8px;"
+        );
+        resetBtn.setOnMouseEntered(ev -> resetBtn.setStyle("-fx-background-color: #2b354a; -fx-border-color: #82aaff; -fx-border-radius: 4px; -fx-background-radius: 4px; -fx-font-size: 10.5px; -fx-font-weight: 600; -fx-text-fill: #ffffff; -fx-cursor: hand; -fx-padding: 3px 8px;"));
+        resetBtn.setOnMouseExited(ev -> resetBtn.setStyle("-fx-background-color: #232a3b; -fx-border-color: #30394f; -fx-border-radius: 4px; -fx-background-radius: 4px; -fx-font-size: 10.5px; -fx-font-weight: 600; -fx-text-fill: #d5deeb; -fx-cursor: hand; -fx-padding: 3px 8px;"));
+        resetBtn.setOnAction(ev -> resetPlaygroundCode());
+
+        Button zoomOutBtn = new Button("A-");
+        zoomOutBtn.setStyle("-fx-background-color: #232a3b; -fx-border-color: #30394f; -fx-border-radius: 4px; -fx-background-radius: 4px; -fx-font-size: 10.5px; -fx-font-weight: 700; -fx-cursor: hand; -fx-padding: 3px 7px; -fx-text-fill: #d5deeb;");
+        zoomOutBtn.setOnAction(ev -> {
+            if (playgroundFontSize > 11) {
+                playgroundFontSize--;
+                updatePlaygroundFont();
+            }
+        });
+
+        Button zoomInBtn = new Button("A+");
+        zoomInBtn.setStyle("-fx-background-color: #232a3b; -fx-border-color: #30394f; -fx-border-radius: 4px; -fx-background-radius: 4px; -fx-font-size: 10.5px; -fx-font-weight: 700; -fx-cursor: hand; -fx-padding: 3px 7px; -fx-text-fill: #d5deeb;");
+        zoomInBtn.setOnAction(ev -> {
+            if (playgroundFontSize < 24) {
+                playgroundFontSize++;
+                updatePlaygroundFont();
+            }
+        });
+
+        tabActions.getChildren().addAll(langLabel, playgroundLangComboBox, resetBtn, zoomOutBtn, zoomInBtn);
+        editorTabBar.getChildren().addAll(activeTab, tabSpacer, tabActions);
+
+        // 2. Breadcrumbs Bar
+        HBox breadcrumbsBar = new HBox(6);
+        breadcrumbsBar.setAlignment(Pos.CENTER_LEFT);
+        breadcrumbsBar.setPadding(new Insets(3, 14, 3, 14));
+        breadcrumbsBar.setStyle(
+                "-fx-background-color: #181c28;" +
+                "-fx-border-color: #212738; -fx-border-width: 0 0 1px 0;"
+        );
+
+        Label bcFolder = new Label("📁 src");
+        bcFolder.setStyle("-fx-font-size: 11px; -fx-text-fill: #707e94; -fx-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;");
+        Label bcSep1 = new Label("›");
+        bcSep1.setStyle("-fx-font-size: 11px; -fx-text-fill: #484f5d;");
+
+        playgroundBreadcrumbFileLabel = new Label(currentLessonLanguage.defaultFileName());
+        playgroundBreadcrumbFileLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #e2e8f0; -fx-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; -fx-font-weight: 700;");
+        Label bcSep2 = new Label("›");
+        bcSep2.setStyle("-fx-font-size: 11px; -fx-text-fill: #484f5d;");
+
+        Label bcSymbol = new Label("{ } main()");
+        bcSymbol.setStyle("-fx-font-size: 11px; -fx-text-fill: #82aaff; -fx-font-family: 'JetBrains Mono', Menlo, monospace;");
+
+        breadcrumbsBar.getChildren().addAll(bcFolder, bcSep1, playgroundBreadcrumbFileLabel, bcSep2, bcSymbol);
+
+        // 3. Code Editor & Line Numbers
+        HBox editorContainer = new HBox(0);
+        editorContainer.setStyle("-fx-background-color: #1c2130;");
+        editorContainer.setMinHeight(360.0);
+        editorContainer.setPrefHeight(420.0);
+        VBox.setVgrow(editorContainer, Priority.ALWAYS);
+
+        playgroundCodeArea = new CodeArea();
+        playgroundCodeArea.getStyleClass().add("code-editor-area");
+        playgroundCodeArea.setParagraphGraphicFactory(LineNumberFactory.get(playgroundCodeArea));
+        playgroundCodeArea.setMinHeight(360.0);
+        playgroundCodeArea.setPrefHeight(420.0);
+        HBox.setHgrow(playgroundCodeArea, Priority.ALWAYS);
+        VBox.setVgrow(playgroundCodeArea, Priority.ALWAYS);
+
+        updatePlaygroundFont();
+
+        CodeSyntaxHighlighter.attachAsyncHighlighting(playgroundCodeArea, () -> currentLessonLanguage, 50);
+        playgroundCodeArea.textProperty().addListener((obs, o, n) -> updatePlaygroundStatus());
+        playgroundCodeArea.caretPositionProperty().addListener((obs, o, n) -> updatePlaygroundStatus());
+
+        // Install Autocomplete / Auto-fill popup engine
+        playgroundCompletionPopup = new CodeCompletionPopup(playgroundCodeArea, true);
+        playgroundCompletionPopup.setLanguage(currentLessonLanguage);
+
+        editorContainer.getChildren().add(playgroundCodeArea);
+
+        // 4. Status Bar (Footer - Slate Navy #151923)
+        HBox editorStatusBar = new HBox(16);
+        editorStatusBar.setAlignment(Pos.CENTER_LEFT);
+        editorStatusBar.setPadding(new Insets(3, 14, 3, 14));
+        editorStatusBar.setStyle(
+                "-fx-background-color: #151923;" +
+                "-fx-border-color: #232a3b; -fx-border-width: 1px 0 0 0;" +
+                "-fx-background-radius: 0 0 8px 8px;"
+        );
+
+        playgroundStatusLabel2 = new Label("Ln 1, Col 1    1 line    Spaces: 4    UTF-8    LF");
+        playgroundStatusLabel2.setStyle("-fx-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; -fx-font-size: 11px; -fx-font-weight: 600; -fx-text-fill: #94a3b8;");
+
+        Region statusSpacer = new Region();
+        HBox.setHgrow(statusSpacer, Priority.ALWAYS);
+
+        playgroundEditorLangBadge = new Label("{ } " + currentLessonLanguage.displayName());
+        playgroundEditorLangBadge.setStyle("-fx-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; -fx-font-size: 11.5px; -fx-font-weight: 700; -fx-text-fill: #60a5fa;");
+
+        editorStatusBar.getChildren().addAll(playgroundStatusLabel2, statusSpacer, playgroundEditorLangBadge);
+
+        compilerFrame.getChildren().addAll(editorTabBar, breadcrumbsBar, editorContainer, editorStatusBar);
+        playgroundEditorContainer.getChildren().setAll(compilerFrame);
+    }
+
+    private void updatePlaygroundFont() {
+        if (playgroundCodeArea != null) {
+            playgroundCodeArea.setStyle("-fx-font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', Menlo, Monaco, Consolas, monospace; -fx-font-size: " + playgroundFontSize + "px; -fx-line-spacing: 2.5px;");
+        }
+    }
+
+    private void updatePlaygroundStatus() {
+        if (playgroundCodeArea == null || playgroundStatusLabel2 == null) return;
+        int caret = playgroundCodeArea.getCaretPosition();
+        String text = playgroundCodeArea.getText();
+        int line = 1;
+        int col = 1;
+        for (int i = 0; i < Math.min(caret, text != null ? text.length() : 0); i++) {
+            if (text.charAt(i) == '\n') {
+                line++;
+                col = 1;
+            } else {
+                col++;
+            }
+        }
+        int totalLines = (text == null || text.isEmpty()) ? 1 : text.split("\n", -1).length;
+        playgroundStatusLabel2.setText(String.format("Ln %d, Col %d    %d lines    Spaces: 4    UTF-8    LF", line, col, totalLines));
+    }
+
+    private void updatePlaygroundLanguageViews() {
+        if (currentLessonLanguage == null) return;
+        if (playgroundFileTabLabel != null) {
+            playgroundFileTabLabel.setText("</> " + currentLessonLanguage.defaultFileName());
+        }
+        if (playgroundBreadcrumbFileLabel != null) {
+            playgroundBreadcrumbFileLabel.setText(currentLessonLanguage.defaultFileName());
+        }
+        if (playgroundEditorLangBadge != null) {
+            playgroundEditorLangBadge.setText("{ } " + currentLessonLanguage.displayName());
+        }
+        if (playgroundCompletionPopup != null) {
+            playgroundCompletionPopup.setLanguage(currentLessonLanguage);
+        }
+        if (playgroundLangComboBox != null && playgroundLangComboBox.getSelectionModel().getSelectedItem() != currentLessonLanguage) {
+            updatingPlaygroundLanguage = true;
+            try {
+                playgroundLangComboBox.getSelectionModel().select(currentLessonLanguage);
+            } finally {
+                updatingPlaygroundLanguage = false;
+            }
+        }
+    }
+
+    private void setPlaygroundCode(String code) {
+        currentLessonOriginalCode = code != null ? code : "";
+        if (lessonExampleArea != null) {
+            lessonExampleArea.setText(currentLessonOriginalCode);
+            lessonExampleArea.setManaged(false);
+            lessonExampleArea.setVisible(false);
+        }
+        if (playgroundCodeArea != null) {
+            playgroundCodeArea.replaceText(currentLessonOriginalCode);
+            if (currentLessonLanguage != null) {
+                CodeSyntaxHighlighter.applyHighlightingAsync(playgroundCodeArea, currentLessonOriginalCode, currentLessonLanguage);
+            }
+            updatePlaygroundStatus();
+        }
+        if (playgroundEditorContainer != null) {
+            playgroundEditorContainer.setManaged(!currentLessonOriginalCode.isBlank());
+            playgroundEditorContainer.setVisible(!currentLessonOriginalCode.isBlank());
+        }
+        if (examplePlaygroundSection != null) {
+            examplePlaygroundSection.setManaged(!currentLessonOriginalCode.isBlank());
+            examplePlaygroundSection.setVisible(!currentLessonOriginalCode.isBlank());
+        }
+        updatePlaygroundLanguageViews();
+    }
+
+    private String getPlaygroundCode() {
+        if (playgroundCodeArea != null) {
+            return playgroundCodeArea.getText();
+        }
+        if (lessonExampleArea != null) {
+            return lessonExampleArea.getText();
+        }
+        return "";
+    }
+
+    @FXML
+    private void openPlaygroundInArena() {
+        boolean isDark = appRoot != null && appRoot.getStyleClass().contains("dark-theme");
+        Window owner = (appRoot != null && appRoot.getScene() != null) ? appRoot.getScene().getWindow() : null;
+        DsaProblemArenaWindow.show(owner, isDark, currentLessonTopicKey, null, currentLessonLanguage);
+    }
+
+    @FXML
+    private void clearPlaygroundConsole() {
+        if (playgroundConsoleArea != null) {
+            playgroundConsoleArea.clear();
+        }
+        if (playgroundStatusLabel != null) {
+            playgroundStatusLabel.setText("Ready to execute");
+            playgroundStatusLabel.setStyle("-fx-text-fill: #10b981; -fx-font-weight: 700;");
+        }
     }
 
     private record NavigationItem(String label, Long topicId, Long lessonId) {

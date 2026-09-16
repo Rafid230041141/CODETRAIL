@@ -2,6 +2,8 @@ package application.client.view;
 
 import java.awt.Desktop;
 import java.net.URI;
+import application.client.dsa.judge.DsaProblemArenaWindow;
+import application.client.dsa.judge.ProgrammingLanguage;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -193,7 +195,7 @@ public class GameDevTopicsWindow {
             new GameDevTopic(
                     "game_publish",
                     "PHASE 8 • OPTIMIZATION, PROFILING & STORE LAUNCH",
-                    "🚀",
+                    "🎮",
                     "Game Optimization, Profiling & Store Launch",
                     "3 Lessons",
                     "Ship commercial titles to players: Frame rate profiling, draw call batching, memory leak diagnostics, build pipelines, and publishing to Steam and Itch.io.",
@@ -693,6 +695,7 @@ public class GameDevTopicsWindow {
 
         Button startButton = new Button("Start learning");
         startButton.getStyleClass().add("start-learning-button");
+        HBox.setHgrow(startButton, Priority.ALWAYS);
         startButton.setMaxWidth(Double.MAX_VALUE);
         startButton.setOnAction(event -> {
             event.consume();
@@ -702,7 +705,18 @@ public class GameDevTopicsWindow {
             }
         });
 
-        VBox body = new VBox(8.0, titleRow, descLabel, startButton);
+        Button exercisesButton = new Button("Exercises");
+        exercisesButton.getStyleClass().add("topic-card-exercise-btn");
+        exercisesButton.setOnAction(event -> {
+            event.consume();
+            boolean isDark = stage.getScene() != null && stage.getScene().getRoot().getStyleClass().contains("dark-theme");
+            DsaProblemArenaWindow.show(stage, isDark, topic.moduleKey(), null, getLanguageForModule(topic.moduleKey()));
+        });
+
+        HBox btnRow = new HBox(6, startButton, exercisesButton);
+        btnRow.setAlignment(Pos.CENTER);
+
+        VBox body = new VBox(8.0, titleRow, descLabel, btnRow);
         body.getStyleClass().add("topic-card-body");
         VBox.setVgrow(body, Priority.ALWAYS);
 
@@ -769,5 +783,14 @@ public class GameDevTopicsWindow {
 
         footer.getChildren().addAll(spacer, startFirstBtn);
         return footer;
+    }
+
+    public static ProgrammingLanguage getLanguageForModule(String moduleKey) {
+        if (moduleKey == null) return ProgrammingLanguage.CPP;
+        return switch (moduleKey.toLowerCase(Locale.ROOT)) {
+            case "pygame" -> ProgrammingLanguage.PYTHON;
+            case "unity_basics", "unity_3d" -> ProgrammingLanguage.CSHARP;
+            default -> ProgrammingLanguage.CPP;
+        };
     }
 }

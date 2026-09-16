@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.VBox?>
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="dev.codetrail.desktop.controller.SimulationInputFieldController"
+      spacing="6" minWidth="0" styleClass="simulation-form-field">
+    <Label fx:id="fieldLabel" wrapText="true" styleClass="simulation-field-label"/>
+    <TextField fx:id="singleInput" maxWidth="Infinity" styleClass="simulation-field-input"/>
+    <TextArea fx:id="rowInput" prefRowCount="4" minHeight="130" wrapText="true" styleClass="simulation-field-input"/>
+    <ComboBox fx:id="choiceInput" maxWidth="Infinity" styleClass="simulation-field-input"/>
+    <Label fx:id="fieldHelp" wrapText="true" minWidth="0" maxWidth="Infinity" styleClass="simulation-field-help"/>
+</VBox>

@@ -2,6 +2,8 @@ package application.client.view;
 
 import java.awt.Desktop;
 import java.net.URI;
+import application.client.dsa.judge.DsaProblemArenaWindow;
+import application.client.dsa.judge.ProgrammingLanguage;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -206,7 +208,7 @@ public class AppDevTopicsWindow {
             new AppDevTopic(
                     "publish",
                     "PHASE 8 • PRODUCTION CI/CD & RELEASE",
-                    "🚀",
+                    "📲",
                     "CI/CD, App Store & Google Play Deployment",
                     "3 Lessons",
                     "Prepare, sign, and ship mobile applications to production app stores. Master Android app bundles (AAB), release keystores, iOS distribution certificates, TestFlight beta testing, and Fastlane CI/CD automation.",
@@ -713,6 +715,7 @@ public class AppDevTopicsWindow {
 
         Button startButton = new Button("Start learning");
         startButton.getStyleClass().add("start-learning-button");
+        HBox.setHgrow(startButton, Priority.ALWAYS);
         startButton.setMaxWidth(Double.MAX_VALUE);
         startButton.setOnAction(event -> {
             event.consume();
@@ -722,7 +725,18 @@ public class AppDevTopicsWindow {
             }
         });
 
-        VBox body = new VBox(8.0, titleRow, descLabel, startButton);
+        Button exercisesButton = new Button("Exercises");
+        exercisesButton.getStyleClass().add("topic-card-exercise-btn");
+        exercisesButton.setOnAction(event -> {
+            event.consume();
+            boolean isDark = stage.getScene() != null && stage.getScene().getRoot().getStyleClass().contains("dark-theme");
+            DsaProblemArenaWindow.show(stage, isDark, topic.moduleKey(), null, getLanguageForModule(topic.moduleKey()));
+        });
+
+        HBox btnRow = new HBox(6, startButton, exercisesButton);
+        btnRow.setAlignment(Pos.CENTER);
+
+        VBox body = new VBox(8.0, titleRow, descLabel, btnRow);
         body.getStyleClass().add("topic-card-body");
         VBox.setVgrow(body, Priority.ALWAYS);
 
@@ -792,5 +806,14 @@ public class AppDevTopicsWindow {
 
         footer.getChildren().addAll(spacer, startFirstBtn);
         return footer;
+    }
+
+    public static ProgrammingLanguage getLanguageForModule(String moduleKey) {
+        if (moduleKey == null) return ProgrammingLanguage.JAVA;
+        return switch (moduleKey.toLowerCase(Locale.ROOT)) {
+            case "reactnative", "mobileapi" -> ProgrammingLanguage.JAVASCRIPT;
+            case "swift" -> ProgrammingLanguage.CPP;
+            default -> ProgrammingLanguage.JAVA;
+        };
     }
 }

@@ -2,6 +2,8 @@ package application.client.view;
 
 import java.awt.Desktop;
 import java.net.URI;
+import application.client.dsa.judge.DsaProblemArenaWindow;
+import application.client.dsa.judge.ProgrammingLanguage;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -193,7 +195,7 @@ public class AiMlTopicsWindow {
             new AiMlTopic(
                     "mlops",
                     "PHASE 8 • MLOPS & PRODUCTION MODEL SERVING",
-                    "🚀",
+                    "⚙️",
                     "MLOps, Docker & Cloud Model Deployment",
                     "3 Lessons",
                     "Deploy models to real users: Model versioning with MLflow, FastAPI inference endpoints, Docker containerization, monitoring data drift, and cloud scaling.",
@@ -693,6 +695,7 @@ public class AiMlTopicsWindow {
 
         Button startButton = new Button("Start learning");
         startButton.getStyleClass().add("start-learning-button");
+        HBox.setHgrow(startButton, Priority.ALWAYS);
         startButton.setMaxWidth(Double.MAX_VALUE);
         startButton.setOnAction(event -> {
             event.consume();
@@ -702,7 +705,18 @@ public class AiMlTopicsWindow {
             }
         });
 
-        VBox body = new VBox(8.0, titleRow, descLabel, startButton);
+        Button exercisesButton = new Button("Exercises");
+        exercisesButton.getStyleClass().add("topic-card-exercise-btn");
+        exercisesButton.setOnAction(event -> {
+            event.consume();
+            boolean isDark = stage.getScene() != null && stage.getScene().getRoot().getStyleClass().contains("dark-theme");
+            DsaProblemArenaWindow.show(stage, isDark, topic.moduleKey(), null, ProgrammingLanguage.PYTHON);
+        });
+
+        HBox btnRow = new HBox(6, startButton, exercisesButton);
+        btnRow.setAlignment(Pos.CENTER);
+
+        VBox body = new VBox(8.0, titleRow, descLabel, btnRow);
         body.getStyleClass().add("topic-card-body");
         VBox.setVgrow(body, Priority.ALWAYS);
 
