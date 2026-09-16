@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import java.net.URL?>
+<?import javafx.scene.canvas.Canvas?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ChoiceBox?>
+<?import javafx.scene.control.MenuButton?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Slider?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.control.TitledPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane fx:id="simulationRoot" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="dev.codetrail.desktop.controller.SimulationPlayerController"
+            styleClass="simulation-player-root" minWidth="1050" minHeight="860">
+    <stylesheets>
+        <URL value="@../css/simulation.css"/>
+    </stylesheets>
+    <top>
+        <VBox spacing="2">
+            <HBox alignment="CENTER_LEFT" spacing="12" styleClass="simulation-header">
+                <Button fx:id="backButton" minWidth="-Infinity" text="← Close Studio" onAction="#onBack" styleClass="button-quiet" mnemonicParsing="false"/>
+                <Label fx:id="simulationTitleLabel" text="Simulation" minWidth="0" styleClass="simulation-title"/>
+                <Label fx:id="simulationMetaLabel" text="" styleClass="simulation-panel-kicker"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Button fx:id="visualizationButton" minWidth="-Infinity" text="Workspace" onAction="#onShowVisualization" styleClass="button-quiet" mnemonicParsing="false"/>
+                <ToggleButton fx:id="focusButton" minWidth="-Infinity" text="Focus diagram" onAction="#onToggleFocus" styleClass="button-secondary" mnemonicParsing="false"/>
+                <Button fx:id="algorithmButton" minWidth="-Infinity" text="Expand code" onAction="#onShowAlgorithm" styleClass="button-quiet" mnemonicParsing="false"/>
+                <Button fx:id="inputButton" minWidth="-Infinity" text="Edit input" onAction="#onShowInput" styleClass="button-secondary" mnemonicParsing="false" disable="true"/>
+            </HBox>
+            <HBox alignment="CENTER_LEFT" spacing="12" styleClass="simulation-goal-row">
+                <Label fx:id="goalLabel" text="" wrapText="true" minWidth="0" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="simulation-goal"/>
+                <MenuButton fx:id="examplesButton" text="Examples" minWidth="-Infinity" disable="true" styleClass="button-quiet" mnemonicParsing="false">
+                    <items>
+                        <MenuItem text="Original example" onAction="#onRunOriginalExample" mnemonicParsing="false"/>
+                        <MenuItem fx:id="alternateExampleItem" text="Alternate example" onAction="#onRunAlternateExample" mnemonicParsing="false"/>
+                        <MenuItem text="My input…" onAction="#onShowInput" mnemonicParsing="false"/>
+                    </items>
+                </MenuButton>
+            </HBox>
+        </VBox>
+    </top>
+    <center>
+        <StackPane minWidth="0" minHeight="0" styleClass="simulation-content">
+            <!-- Vertical SplitPane placing Visual Canvas on Top and Pseudocode + Details Below -->
+            <SplitPane fx:id="simulationSplit" orientation="VERTICAL" dividerPositions="0.70" minWidth="0" minHeight="0" styleClass="simulation-split">
+                <items>
+                    <!-- Top: Big Canvas spanning full width -->
+                    <StackPane fx:id="canvasContainer" minWidth="0" minHeight="460" styleClass="simulation-canvas-wrap">
+                        <Canvas fx:id="simulationCanvas"/>
+                    </StackPane>
+                    <!-- Bottom: Pseudocode and Live Details below canvas -->
+                    <VBox fx:id="algorithmPanel" minWidth="0" minHeight="180" spacing="10" styleClass="simulation-code-panel">
+                        <HBox alignment="CENTER_LEFT" spacing="12">
+                            <Label text="Algorithm Pseudocode" styleClass="simulation-panel-title"/>
+                            <Region HBox.hgrow="ALWAYS"/>
+                            <Label text="Live line execution &amp; recorded variables" styleClass="simulation-code-hint"/>
+                        </HBox>
+                        <HBox spacing="14" VBox.vgrow="ALWAYS" minHeight="0">
+                            <!-- Left: Monospace Pseudocode with active line highlight -->
+                            <VBox spacing="6" HBox.hgrow="ALWAYS" minWidth="300" minHeight="0">
+                                <ScrollPane fx:id="pseudocodeScrollPane" fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED"
+                                            minWidth="0" minHeight="0" VBox.vgrow="ALWAYS" styleClass="simulation-code-scroll">
+                                    <content>
+                                        <VBox fx:id="pseudocodeBox" minWidth="0" spacing="2" styleClass="simulation-pseudocode"/>
+                                    </content>
+                                </ScrollPane>
+                            </VBox>
+                            <!-- Right: Live Step Details & Legend -->
+                            <TitledPane fx:id="stepDetailsPane" text="Step State &amp; Legend" expanded="true" animated="false"
+                                        prefWidth="420" minWidth="280" maxWidth="520" minHeight="0" styleClass="simulation-step-details">
+                                <content>
+                                    <ScrollPane fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED" minHeight="0" VBox.vgrow="ALWAYS" styleClass="simulation-code-scroll">
+                                        <content>
+                                            <VBox spacing="8" styleClass="simulation-detail-content">
+                                                <Label fx:id="fullNarrationLabel" text="" wrapText="true" minWidth="0" maxWidth="Infinity" styleClass="simulation-detail-text"/>
+                                                <Label text="Recorded values" styleClass="simulation-panel-kicker"/>
+                                                <Label fx:id="recordedValuesLabel" text="" wrapText="true" minWidth="0" maxWidth="Infinity" styleClass="simulation-detail-text"/>
+                                                <Label text="Status Legend" styleClass="simulation-panel-kicker"/>
+                                                <FlowPane fx:id="legendBox" hgap="12" vgap="6" styleClass="simulation-legend"/>
+                                            </VBox>
+                                        </content>
+                                    </ScrollPane>
+                                </content>
+                            </TitledPane>
+                        </HBox>
+                    </VBox>
+                </items>
+            </SplitPane>
+            <!-- Overlay Input Panel -->
+            <VBox fx:id="inputPanel" minWidth="0" minHeight="0" spacing="10" visible="false" managed="false" styleClass="simulation-input-content">
+                <HBox alignment="CENTER_LEFT" spacing="12">
+                    <Label text="My input" styleClass="simulation-field-label"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Button text="Reset example" onAction="#onResetExample" styleClass="button-secondary" mnemonicParsing="false"/>
+                </HBox>
+                <ScrollPane fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED" minWidth="0" minHeight="0" VBox.vgrow="ALWAYS" styleClass="simulation-form-scroll">
+                    <content><VBox fx:id="inputFieldsBox" minWidth="0" spacing="18" styleClass="simulation-form-fields"/></content>
+                </ScrollPane>
+                <Label fx:id="inputErrorLabel" text="" wrapText="true" visible="false" managed="false" styleClass="simulation-input-error"/>
+                <HBox alignment="CENTER_LEFT" spacing="12">
+                    <Button fx:id="runInputButton" text="Run simulation" onAction="#onRunCustomInput" styleClass="button-primary" disable="true" mnemonicParsing="false"/>
+                </HBox>
+            </VBox>
+        </StackPane>
+    </center>
+    <bottom>
+        <VBox fx:id="playbackDock" spacing="4" styleClass="simulation-dock">
+            <HBox alignment="CENTER_LEFT" spacing="12" styleClass="simulation-narration-row">
+                <Label fx:id="stepLabel" text="No trace loaded" styleClass="simulation-step"/>
+                <Label fx:id="narrationLabel" text="" wrapText="true" onMouseClicked="#onCaptionDetails" focusTraversable="true" onKeyPressed="#onCaptionKey" minWidth="0" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="simulation-caption"/>
+            </HBox>
+            <HBox fx:id="controlBar" alignment="CENTER_LEFT" spacing="8" styleClass="simulation-controls">
+                <Button fx:id="previousButton" text="← Previous" onAction="#onPrevious" styleClass="button-secondary" disable="true" mnemonicParsing="false"/>
+                <Button fx:id="playPauseButton" text="Play" onAction="#onPlayPause" styleClass="button-primary" disable="true" mnemonicParsing="false"/>
+                <Button fx:id="nextButton" text="Next →" onAction="#onNext" styleClass="button-secondary" disable="true" mnemonicParsing="false"/>
+                <Button fx:id="restartButton" text="Restart" onAction="#onRestart" styleClass="button-secondary" disable="true" mnemonicParsing="false"/>
+                <ChoiceBox fx:id="playbackModeChoice" prefWidth="165" minWidth="165" maxWidth="165" disable="true" styleClass="simulation-playback-mode" accessibleText="Playback detail"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label text="Speed" styleClass="simulation-speed-label"/>
+                <Slider fx:id="speedSlider" min="0.25" max="3" value="1" blockIncrement="0.25"
+                        majorTickUnit="0.25" prefWidth="140" minWidth="105" maxWidth="180" showTickMarks="true"/>
+                <Label fx:id="speedValueLabel" text="1.00×" styleClass="simulation-speed-label"/>
+            </HBox>
+            <Label fx:id="statusLabel" text="" wrapText="true" minWidth="0" visible="false" managed="false" styleClass="simulation-status"/>
+        </VBox>
+    </bottom>
+</BorderPane>
