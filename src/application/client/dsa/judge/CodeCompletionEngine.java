@@ -32,6 +32,9 @@ public final class CodeCompletionEngine {
         initJava();
         initCSharp();
         initJavaScript();
+        initHtml();
+        initCss();
+        initSql();
     }
 
     private CodeCompletionEngine() {}
@@ -329,6 +332,84 @@ public final class CodeCompletionEngine {
         DICTIONARIES.put(ProgrammingLanguage.JAVASCRIPT, list);
     }
 
+    private static void initHtml() {
+        List<CompletionItem> list = new ArrayList<>();
+        list.add(new CompletionItem("div", "<div>$0</div>", "TAG", "Generic container block"));
+        list.add(new CompletionItem("span", "<span>$0</span>", "TAG", "Generic inline container"));
+        list.add(new CompletionItem("p", "<p>$0</p>", "TAG", "Paragraph text element"));
+        list.add(new CompletionItem("h1", "<h1>$0</h1>", "TAG", "Top-level section heading"));
+        list.add(new CompletionItem("h2", "<h2>$0</h2>", "TAG", "Sub-heading"));
+        list.add(new CompletionItem("h3", "<h3>$0</h3>", "TAG", "Sub-section heading"));
+        list.add(new CompletionItem("a", "<a href=\"$1\">$0</a>", "TAG", "Hyperlink anchor element"));
+        list.add(new CompletionItem("button", "<button class=\"$1\">$0</button>", "TAG", "Clickable button element"));
+        list.add(new CompletionItem("input", "<input type=\"text\" placeholder=\"$0\">", "TAG", "Interactive form input"));
+        list.add(new CompletionItem("form", "<form action=\"$1\" method=\"POST\">\n    $0\n</form>", "TAG", "HTML form container"));
+        list.add(new CompletionItem("section", "<section class=\"$1\">\n    $0\n</section>", "TAG", "Semantic standalone section"));
+        list.add(new CompletionItem("article", "<article>\n    $0\n</article>", "TAG", "Independent self-contained composition"));
+        list.add(new CompletionItem("header", "<header>\n    $0\n</header>", "TAG", "Introductory content container"));
+        list.add(new CompletionItem("footer", "<footer>\n    $0\n</footer>", "TAG", "Footer element"));
+        list.add(new CompletionItem("nav", "<nav>\n    $0\n</nav>", "TAG", "Navigation links section"));
+        list.add(new CompletionItem("main", "<main>\n    $0\n</main>", "TAG", "Dominant content of the document"));
+        list.add(new CompletionItem("style", "<style>\n    $0\n</style>", "TAG", "Internal CSS style block"));
+        list.add(new CompletionItem("script", "<script>\n    $0\n</script>", "TAG", "Embedded client-side JavaScript"));
+        list.add(new CompletionItem("table", "<table>\n    <thead>\n        <tr><th>$0</th></tr>\n    </thead>\n    <tbody>\n        <tr><td></td></tr>\n    </tbody>\n</table>", "SNIP", "HTML data table"));
+        list.add(new CompletionItem("class", "class=\"$0\"", "ATTR", "CSS class selector attribute"));
+        list.add(new CompletionItem("id", "id=\"$0\"", "ATTR", "Unique element identifier"));
+        list.add(new CompletionItem("style_attr", "style=\"$0\"", "ATTR", "Inline CSS styling"));
+        DICTIONARIES.put(ProgrammingLanguage.HTML, list);
+    }
+
+    private static void initCss() {
+        List<CompletionItem> list = new ArrayList<>();
+        list.add(new CompletionItem("display", "display: $0;", "PROP", "Element display behavior"));
+        list.add(new CompletionItem("flex", "display: flex;\njustify-content: $1;\nalign-items: $0;", "SNIP", "Flexbox layout container"));
+        list.add(new CompletionItem("grid", "display: grid;\ngrid-template-columns: repeat(auto-fit, minmax(250px, 1fr));\ngap: $0;", "SNIP", "CSS Grid responsive layout"));
+        list.add(new CompletionItem("justify-content", "justify-content: center;", "PROP", "Align along primary axis"));
+        list.add(new CompletionItem("align-items", "align-items: center;", "PROP", "Align along cross axis"));
+        list.add(new CompletionItem("margin", "margin: $0;", "PROP", "Outer element spacing"));
+        list.add(new CompletionItem("padding", "padding: $0;", "PROP", "Inner element padding"));
+        list.add(new CompletionItem("background", "background-color: $0;", "PROP", "Background color fill"));
+        list.add(new CompletionItem("color", "color: $0;", "PROP", "Text foreground color"));
+        list.add(new CompletionItem("border", "border: 1px solid $0;", "PROP", "Element border outline"));
+        list.add(new CompletionItem("border-radius", "border-radius: 8px;", "PROP", "Rounded corner radius"));
+        list.add(new CompletionItem("box-shadow", "box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);", "PROP", "Elevation shadow drop"));
+        list.add(new CompletionItem("font-family", "font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;", "PROP", "Typography typeface"));
+        list.add(new CompletionItem("font-size", "font-size: 14px;", "PROP", "Text sizing"));
+        list.add(new CompletionItem("font-weight", "font-weight: 600;", "PROP", "Typography boldness"));
+        list.add(new CompletionItem("transition", "transition: all 0.2s ease-in-out;", "PROP", "Smooth state transition"));
+        list.add(new CompletionItem("transform", "transform: translateY(-2px);", "PROP", "2D/3D visual transformation"));
+        list.add(new CompletionItem("media", "@media (max-width: 768px) {\n    $0\n}", "SNIP", "Responsive media query breakpoint"));
+        list.add(new CompletionItem("keyframes", "@keyframes $1 {\n    from { opacity: 0; }\n    to { opacity: 1; }\n}", "SNIP", "CSS animation keyframes"));
+        list.add(new CompletionItem("hover", ":hover {\n    $0\n}", "PSEUDO", "Mouse hover state selector"));
+        list.add(new CompletionItem("root", ":root {\n    --primary: #38bdf8;\n    --bg: #0f172a;\n    --text: #f8fafc;\n}", "SNIP", "CSS custom property variables"));
+        DICTIONARIES.put(ProgrammingLanguage.CSS, list);
+    }
+
+    private static void initSql() {
+        List<CompletionItem> list = new ArrayList<>();
+        list.add(new CompletionItem("select", "SELECT * FROM $0;", "QUERY", "Select all columns from table"));
+        list.add(new CompletionItem("select_where", "SELECT * FROM $1 WHERE $0;", "QUERY", "Filtered selection query"));
+        list.add(new CompletionItem("insert", "INSERT INTO $1 ($2) VALUES ($0);", "QUERY", "Insert new record"));
+        list.add(new CompletionItem("update", "UPDATE $1 SET $2 = $3 WHERE $0;", "QUERY", "Update existing record"));
+        list.add(new CompletionItem("delete", "DELETE FROM $1 WHERE $0;", "QUERY", "Delete records matching condition"));
+        list.add(new CompletionItem("create_table", "CREATE TABLE IF NOT EXISTS $1 (\n    id INTEGER PRIMARY KEY,\n    name VARCHAR(100) NOT NULL,\n    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP\n);", "DDL", "Create relational table schema"));
+        list.add(new CompletionItem("join", "INNER JOIN $1 ON $0", "CLAUSE", "Inner join relating two tables"));
+        list.add(new CompletionItem("left_join", "LEFT JOIN $1 ON $0", "CLAUSE", "Left outer join preserving left records"));
+        list.add(new CompletionItem("group_by", "GROUP BY $0", "CLAUSE", "Group query results for aggregation"));
+        list.add(new CompletionItem("order_by", "ORDER BY $0 ASC", "CLAUSE", "Sort query result set"));
+        list.add(new CompletionItem("having", "HAVING $0", "CLAUSE", "Filter aggregate grouped rows"));
+        list.add(new CompletionItem("count", "COUNT(*)", "FUNC", "Count total matched records"));
+        list.add(new CompletionItem("sum", "SUM($0)", "FUNC", "Sum numeric column values"));
+        list.add(new CompletionItem("avg", "AVG($0)", "FUNC", "Average numeric column values"));
+        list.add(new CompletionItem("row_number", "ROW_NUMBER() OVER (PARTITION BY $1 ORDER BY $0)", "WINDOW", "Sequential row number window function"));
+        list.add(new CompletionItem("rank", "RANK() OVER (ORDER BY $0 DESC)", "WINDOW", "Rank window function with tie gaps"));
+        list.add(new CompletionItem("dense_rank", "DENSE_RANK() OVER (ORDER BY $0 DESC)", "WINDOW", "Continuous ranking without rank gaps"));
+        list.add(new CompletionItem("lag", "LAG($1, 1) OVER (ORDER BY $0)", "WINDOW", "Access previous row value"));
+        list.add(new CompletionItem("lead", "LEAD($1, 1) OVER (ORDER BY $0)", "WINDOW", "Access subsequent row value"));
+        list.add(new CompletionItem("cte", "WITH $1 AS (\n    SELECT $0\n)\nSELECT * FROM $1;", "SNIP", "Common Table Expression query"));
+        DICTIONARIES.put(ProgrammingLanguage.SQL, list);
+    }
+
     /**
      * Retrieves autocomplete suggestions for the given language and typing prefix.
      * Matches prefix case-insensitively, prioritizing exact/prefix matches over substring matches.
@@ -370,6 +451,9 @@ public final class CodeCompletionEngine {
                 case JAVA -> new CompletionItem("cout", "System.out.println(", "I/O", "Print to stdout (Java equivalent of C++ cout)");
                 case CSHARP -> new CompletionItem("cout", "Console.WriteLine(", "I/O", "Print to stdout (C# equivalent of C++ cout)");
                 case JAVASCRIPT -> new CompletionItem("cout", "console.log(", "I/O", "Print to stdout (JS equivalent of C++ cout)");
+                case HTML -> new CompletionItem("cout", "<!-- output -->", "I/O", "HTML output placeholder");
+                case CSS -> new CompletionItem("cout", "/* output */", "I/O", "CSS comment placeholder");
+                case SQL -> new CompletionItem("cout", "SELECT /* output */", "I/O", "SQL query output");
             };
             prefixMatches.add(0, coutItem);
         }

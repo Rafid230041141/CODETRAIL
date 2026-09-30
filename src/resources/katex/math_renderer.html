@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="katex.min.css">
+    <script src="katex.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        html, body {
+            background-color: transparent !important;
+            background: transparent !important;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+        .math-container {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            padding: 4px 12px;
+            text-align: center;
+            max-width: 100%;
+        }
+        .katex-display {
+            margin: 0 !important;
+            display: inline-block !important;
+        }
+        .katex {
+            font-size: 1.3em !important;
+            text-rendering: geometricPrecision;
+        }
+        .formula-segment {
+            display: inline-flex;
+            align-items: center;
+        }
+        .formula-divider {
+            color: #64748b;
+            font-size: 1.6em;
+            font-weight: 200;
+            opacity: 0.7;
+            padding: 0 4px;
+            user-select: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="math-root" class="math-container"></div>
+
+    <script>
+        function renderMath(formulaStr, colorHex) {
+            const root = document.getElementById('math-root');
+            if (!root) return;
+            root.innerHTML = '';
+            const textColor = colorHex || '#38bdf8';
+
+            if (!formulaStr || formulaStr.trim().length === 0) {
+                return;
+            }
+
+            // Split on ' | ' or ' \Big| ' or ' \quad|\quad ' if multiple formulas are combined
+            const parts = formulaStr.split(/\s*\|\s*/);
+
+            parts.forEach((part, index) => {
+                if (index > 0) {
+                    const divider = document.createElement('span');
+                    divider.className = 'formula-divider';
+                    divider.textContent = '|';
+                    root.appendChild(divider);
+                }
+
+                const segment = document.createElement('span');
+                segment.className = 'formula-segment';
+                segment.style.color = textColor;
+
+                try {
+                    katex.render(part.trim(), segment, {
+                        displayMode: true,
+                        throwOnError: false
+                    });
+                } catch (e) {
+                    segment.textContent = part;
+                }
+
+                root.appendChild(segment);
+            });
+
+            // Ensure explicit color styling on all rendered KaTeX elements
+            const katexEls = root.querySelectorAll('.katex, .katex *');
+            katexEls.forEach(el => {
+                el.style.color = textColor;
+            });
+        }
+
+        window.renderMath = renderMath;
+
+        // Auto-render from location hash if present
+        function initFromHash() {
+            try {
+                if (window.location.hash && window.location.hash.length > 1) {
+                    const payload = JSON.parse(decodeURIComponent(window.location.hash.substring(1)));
+                    if (payload && payload.formula) {
+                        renderMath(payload.formula, payload.color);
+                    }
+                }
+            } catch (err) {
+                console.error("Failed to parse hash payload:", err);
+            }
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initFromHash);
+        } else {
+            initFromHash();
+        }
+    </script>
+</body>
+</html>

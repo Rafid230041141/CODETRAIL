@@ -1,3 +1,6 @@
 .metadata/
 bin/
 target/
+/node_modules/
+/scratch/
+/cp.txt

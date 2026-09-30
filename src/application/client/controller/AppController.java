@@ -22,7 +22,14 @@ import application.client.dto.ApiModels.TopicProgress;
 import application.client.dto.ApiModels.TopicSummary;
 import application.client.dto.ApiModels.TopicTree;
 import application.client.service.ApiClient;
+import application.client.util.LucideIcons;
 import application.client.util.MarkdownRenderer;
+import application.client.learning.CourseCategory;
+import application.client.learning.CourseLearningOrchestrator;
+import application.client.learning.LearningBlock;
+import application.client.learning.LiveWebPreviewBlock;
+import application.client.learning.ObjectiveBlock;
+import application.client.learning.PracticeEnvironment;
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyStringWrapper;
@@ -75,6 +82,7 @@ import application.client.view.LanguagesTopicsWindow;
 import application.client.view.AiMlTopicsWindow;
 import application.client.view.DataScienceTopicsWindow;
 import application.client.view.GameDevTopicsWindow;
+import application.client.view.DatabaseTopicsWindow;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -83,6 +91,8 @@ import java.util.prefs.Preferences;
 import javafx.stage.FileChooser;
 import javafx.stage.Window;
 import javafx.scene.shape.Circle;
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import application.client.dsa.judge.ProgrammingLanguage;
@@ -212,6 +222,8 @@ public final class AppController {
     @FXML
     private ImageView attachAvatarBtnIcon;
     @FXML
+    private ImageView deleteAvatarBtnIcon;
+    @FXML
     private Label topicDrawerWhatTaught;
     @FXML
     private Label topicDrawerRealWorld;
@@ -235,6 +247,18 @@ public final class AppController {
     private Label profileQuizAttemptsLabel;
     @FXML
     private Label profileCoursesCountLabel;
+    @FXML
+    private Label curriculumEyebrowLabel;
+    @FXML
+    private Label continueHeaderLabel;
+    @FXML
+    private Label profileStatCompletedTitle;
+    @FXML
+    private Label profileStatProgressTitle;
+    @FXML
+    private Label profileStatQuizTitle;
+    @FXML
+    private Label profileStatCoursesTitle;
     @FXML
     private Label profileDetailDisplayName;
     @FXML
@@ -263,6 +287,7 @@ public final class AppController {
     private Label lessonSummaryLabel;
     @FXML
     private VBox markdownContent;
+    private LiveWebPreviewBlock currentActiveWebPreview = null;
     @FXML
     private TextArea lessonExampleArea;
     @FXML
@@ -270,9 +295,19 @@ public final class AppController {
     @FXML
     private Button sidebarProfileBtn;
     @FXML
+    private Button studentLogoutButton;
+    @FXML
+    private Button adminLogoutButton;
+    @FXML
     private StackPane profileAvatarContainer;
     @FXML
     private Button attachAvatarBtn;
+    @FXML
+    private Button deleteAvatarBtn;
+    @FXML
+    private VBox lessonPlaygroundWrapper;
+    @FXML
+    private Label playgroundTitleLabel;
     @FXML
     private VBox examplePlaygroundSection;
     @FXML
@@ -322,9 +357,15 @@ public final class AppController {
     @FXML
     private VBox lessonVideoContainer;
     @FXML
+    private Label lessonVideoTag;
+    @FXML
+    private ImageView lessonVideoTagIcon;
+    @FXML
     private Label lessonVideoTitleLabel;
     @FXML
     private Button lessonVideoPlayBtn;
+    @FXML
+    private ImageView lessonVideoPlayBtnIcon;
     @FXML
     private Button lessonVideoStopBtn;
     @FXML
@@ -332,7 +373,13 @@ public final class AppController {
     @FXML
     private Button lessonVideoForwardBtn;
     @FXML
+    private Button openCurrentLessonVideo;
+    @FXML
+    private ImageView openCurrentLessonVideoIcon;
+    @FXML
     private Button lessonVideoCopyLinkBtn;
+    @FXML
+    private ImageView lessonVideoCopyLinkBtnIcon;
     @FXML
     private StackPane embeddedWebPlayerPane;
     @FXML
@@ -391,7 +438,14 @@ public final class AppController {
             @Override
             protected void updateItem(NavigationItem item, boolean empty) {
                 super.updateItem(item, empty);
-                setText(empty || item == null ? null : item.label());
+                if (empty || item == null) {
+                    setText(null);
+                    setGraphic(null);
+                } else {
+                    setText(item.cleanTitle());
+                    boolean isDark = appRoot != null && appRoot.getStyleClass().contains("dark-theme");
+                    setGraphic(item.renderIcon(isDark));
+                }
             }
         });
         curriculumTree.getSelectionModel().selectedItemProperty().addListener(
@@ -431,8 +485,8 @@ public final class AppController {
         showOnly(loginView);
     }
 
-    private static final String MOON_DARK = "/resources/images/icon-moon-dark.png";
-    private static final String SUN_LIGHT = "/resources/images/icon-sun-light.png";
+    private static final String MOON_DARK = "/resources/images/lucide/moon-dark.png";
+    private static final String SUN_LIGHT = "/resources/images/lucide/sun.png";
 
     @FXML
     private void submitAuth() {
@@ -529,6 +583,17 @@ public final class AppController {
         refreshProgress();
     }
 
+    private BufferedImage cropToSquare(BufferedImage src) {
+        if (src == null) return null;
+        int w = src.getWidth();
+        int h = src.getHeight();
+        if (w == h) return src;
+        int size = Math.min(w, h);
+        int x = (w - size) / 2;
+        int y = (h - size) / 2;
+        return src.getSubimage(x, y, size, size);
+    }
+
     @FXML
     private void attachStudentAvatar() {
         FileChooser fileChooser = new FileChooser();
@@ -545,7 +610,17 @@ public final class AppController {
                 String username = (currentSession != null && currentSession.username() != null && !currentSession.username().isBlank())
                         ? currentSession.username() : "student";
                 Path targetPath = avatarDir.resolve("avatar-" + username + ".png");
-                Files.copy(selectedFile.toPath(), targetPath, StandardCopyOption.REPLACE_EXISTING);
+                try {
+                    BufferedImage bImage = ImageIO.read(selectedFile);
+                    if (bImage != null) {
+                        BufferedImage cropped = cropToSquare(bImage);
+                        ImageIO.write(cropped, "png", targetPath.toFile());
+                    } else {
+                        Files.copy(selectedFile.toPath(), targetPath, StandardCopyOption.REPLACE_EXISTING);
+                    }
+                } catch (Throwable t) {
+                    Files.copy(selectedFile.toPath(), targetPath, StandardCopyOption.REPLACE_EXISTING);
+                }
                 Preferences.userNodeForPackage(AppController.class).put("avatar_" + username, targetPath.toAbsolutePath().toString());
                 loadAvatarForUser(username);
                 if (studentStatusLabel != null) {
@@ -556,6 +631,28 @@ public final class AppController {
                     studentStatusLabel.setText("Failed to save avatar: " + ex.getMessage());
                 }
             }
+        }
+    }
+
+    @FXML
+    private void deleteStudentAvatar() {
+        String username = (currentSession != null && currentSession.username() != null && !currentSession.username().isBlank())
+                ? currentSession.username() : "student";
+        try {
+            Path avatarDir = Path.of(System.getProperty("user.home"), ".gemini", "antigravity", "avatars");
+            Path avatarFile = avatarDir.resolve("avatar-" + username + ".png");
+            Files.deleteIfExists(avatarFile);
+        } catch (Exception ignored) {}
+        try {
+            String savedPath = Preferences.userNodeForPackage(AppController.class).get("avatar_" + username, null);
+            if (savedPath != null && !savedPath.isBlank()) {
+                Files.deleteIfExists(Path.of(savedPath));
+            }
+        } catch (Exception ignored) {}
+        Preferences.userNodeForPackage(AppController.class).remove("avatar_" + username);
+        loadAvatarForUser(username);
+        if (studentStatusLabel != null) {
+            studentStatusLabel.setText("Profile photo removed.");
         }
     }
 
@@ -571,29 +668,51 @@ public final class AppController {
         }
         if (Files.exists(avatarFile)) {
             try {
-                Image userImg = new Image(avatarFile.toUri().toString(), 140, 140, true, true);
+                try {
+                    BufferedImage bImage = ImageIO.read(avatarFile.toFile());
+                    if (bImage != null && bImage.getWidth() != bImage.getHeight()) {
+                        BufferedImage cropped = cropToSquare(bImage);
+                        ImageIO.write(cropped, "png", avatarFile.toFile());
+                    }
+                } catch (Throwable ignored) {}
+
+                Image userImg = new Image(avatarFile.toUri().toString(), 152, 152, true, true);
                 if (profileAvatarIcon != null) {
                     profileAvatarIcon.setImage(userImg);
-                    profileAvatarIcon.setFitWidth(70);
-                    profileAvatarIcon.setFitHeight(70);
-                    Circle clipL = new Circle(35, 35, 35);
+                    profileAvatarIcon.setFitWidth(76);
+                    profileAvatarIcon.setFitHeight(76);
+                    profileAvatarIcon.setPreserveRatio(false);
+                    Circle clipL = new Circle(38, 38, 38);
                     profileAvatarIcon.setClip(clipL);
                 }
                 if (studentProfileIcon != null) {
                     studentProfileIcon.setImage(userImg);
                     studentProfileIcon.setFitWidth(26);
                     studentProfileIcon.setFitHeight(26);
+                    studentProfileIcon.setPreserveRatio(false);
                     Circle clipS = new Circle(13, 13, 13);
                     studentProfileIcon.setClip(clipS);
+                }
+                if (deleteAvatarBtn != null) {
+                    setVisibleManaged(deleteAvatarBtn, true);
                 }
                 return;
             } catch (Throwable ignored) {}
         }
         if (profileAvatarIcon != null) {
             profileAvatarIcon.setClip(null);
+            profileAvatarIcon.setFitWidth(70);
+            profileAvatarIcon.setFitHeight(70);
+            profileAvatarIcon.setPreserveRatio(true);
         }
         if (studentProfileIcon != null) {
             studentProfileIcon.setClip(null);
+            studentProfileIcon.setFitWidth(26);
+            studentProfileIcon.setFitHeight(26);
+            studentProfileIcon.setPreserveRatio(true);
+        }
+        if (deleteAvatarBtn != null) {
+            setVisibleManaged(deleteAvatarBtn, false);
         }
         updateAccountIcon(appRoot != null && appRoot.getStyleClass().contains("dark-theme"));
     }
@@ -716,6 +835,47 @@ public final class AppController {
         String compilerIconPath = dark ? "/resources/images/icon-compiler-dark.png" : "/resources/images/icon-compiler.png";
 
         try {
+            if (sidebarDashboardBtn != null) {
+                sidebarDashboardBtn.setGraphic(LucideIcons.icon("layout-dashboard", 16, dark));
+            }
+            if (sidebarProfileBtn != null) {
+                sidebarProfileBtn.setGraphic(LucideIcons.icon("user", 16, dark));
+            }
+            if (studentLogoutButton != null) {
+                studentLogoutButton.setGraphic(createSignOutIcon(15));
+                studentLogoutButton.setGraphicTextGap(6);
+            }
+            if (adminLogoutButton != null) {
+                adminLogoutButton.setGraphic(createSignOutIcon(15));
+                adminLogoutButton.setGraphicTextGap(6);
+            }
+            if (curriculumEyebrowLabel != null) {
+                curriculumEyebrowLabel.setGraphic(LucideIcons.icon("list-tree", 13, dark));
+                curriculumEyebrowLabel.setGraphicTextGap(6);
+            }
+            if (continueHeaderLabel != null) {
+                continueHeaderLabel.setGraphic(LucideIcons.icon("play", 11, dark));
+                continueHeaderLabel.setGraphicTextGap(5);
+            }
+            if (profileStatCompletedTitle != null) {
+                profileStatCompletedTitle.setGraphic(LucideIcons.iconWithVariant("award", "gold", 14));
+                profileStatCompletedTitle.setGraphicTextGap(6);
+            }
+            if (profileStatProgressTitle != null) {
+                profileStatProgressTitle.setGraphic(LucideIcons.iconWithVariant("bar-chart-3", "brand", 14));
+                profileStatProgressTitle.setGraphicTextGap(6);
+            }
+            if (profileStatQuizTitle != null) {
+                profileStatQuizTitle.setGraphic(LucideIcons.iconWithVariant("flame", "orange", 14));
+                profileStatQuizTitle.setGraphicTextGap(6);
+            }
+            if (profileStatCoursesTitle != null) {
+                profileStatCoursesTitle.setGraphic(LucideIcons.icon("list-tree", 14, dark));
+                profileStatCoursesTitle.setGraphicTextGap(6);
+            }
+            if (curriculumTree != null) {
+                curriculumTree.refresh();
+            }
             if (attachAvatarBtnIcon != null) {
                 attachAvatarBtnIcon.setImage(new javafx.scene.image.Image(getClass().getResource(photoIconPath).toExternalForm()));
             }
@@ -728,7 +888,37 @@ public final class AppController {
             if (topicDrawerCompilerIcon != null) {
                 topicDrawerCompilerIcon.setImage(new javafx.scene.image.Image(getClass().getResource(compilerIconPath).toExternalForm()));
             }
+            if (lessonVideoTagIcon != null) {
+                String lectureIcon = dark ? "/resources/images/icon-video-lecture-light.png" : "/resources/images/icon-video-lecture.png";
+                lessonVideoTagIcon.setImage(new javafx.scene.image.Image(getClass().getResource(lectureIcon).toExternalForm()));
+            }
+            if (lessonVideoPlayBtnIcon != null) {
+                lessonVideoPlayBtnIcon.setImage(new javafx.scene.image.Image(getClass().getResource("/resources/images/icon-video-play-white.png").toExternalForm()));
+            }
+            if (openCurrentLessonVideoIcon != null) {
+                String browseIcon = dark ? "/resources/images/icon-video-browse-light.png" : "/resources/images/icon-video-browse.png";
+                openCurrentLessonVideoIcon.setImage(new javafx.scene.image.Image(getClass().getResource(browseIcon).toExternalForm()));
+            }
+            if (lessonVideoCopyLinkBtnIcon != null) {
+                String copyIcon = dark ? "/resources/images/icon-video-copy-light.png" : "/resources/images/icon-video-copy.png";
+                lessonVideoCopyLinkBtnIcon.setImage(new javafx.scene.image.Image(getClass().getResource(copyIcon).toExternalForm()));
+            }
         } catch (Exception ignored) {}
+    }
+
+    private Node createSignOutIcon(double size) {
+        try {
+            var url = getClass().getResource("/resources/images/icon-sign-out.png");
+            if (url != null) {
+                ImageView iv = new ImageView(new Image(url.toExternalForm()));
+                iv.setFitWidth(size);
+                iv.setFitHeight(size);
+                iv.setPreserveRatio(true);
+                iv.setSmooth(true);
+                return iv;
+            }
+        } catch (Throwable ignored) {}
+        return LucideIcons.icon("log-out", size, true);
     }
 
     private void updateAccountIcon(boolean dark) {
@@ -836,24 +1026,24 @@ public final class AppController {
 
         for (TopicTree topic : trees) {
             TreeItem<NavigationItem> topicItem = new TreeItem<>(
-                    new NavigationItem(topic.title(), topic.id(), null));
+                    new NavigationItem(topic.title(), topic.id(), null, "category"));
             for (ModuleView module : topic.modules()) {
                 TreeItem<NavigationItem> moduleItem = new TreeItem<>(
-                        new NavigationItem(module.title(), topic.id(), null));
+                        new NavigationItem(module.title(), topic.id(), null, "module"));
                 for (SubmoduleView submodule : module.submodules()) {
                     TreeItem<NavigationItem> submoduleItem = new TreeItem<>(
-                            new NavigationItem(submodule.title(), topic.id(), null));
+                            new NavigationItem(submodule.title(), topic.id(), null, "submodule"));
                     for (LessonSummary lesson : submodule.lessons()) {
-                        String label;
+                        String iconType;
                         if (lesson.completed()) {
-                            label = "✓  " + lesson.title();
+                            iconType = "completed";
                         } else if (lesson.id().equals(nextTodoLessonId)) {
-                            label = "▶  " + lesson.title() + " (To Do)";
+                            iconType = "current";
                         } else {
-                            label = "○  " + lesson.title();
+                            iconType = "not_started";
                         }
                         TreeItem<NavigationItem> lessonItem = new TreeItem<>(new NavigationItem(
-                                label, topic.id(), lesson.id()));
+                                lesson.title(), topic.id(), lesson.id(), iconType));
                         if (lesson.id().equals(nextTodoLessonId)) {
                             todoTreeItem = lessonItem;
                         }
@@ -977,7 +1167,13 @@ public final class AppController {
         Label description = styledLabel(topic.description(), "topic-card-description");
         description.setMaxHeight(56.0);
 
+        String slugOrTitle = topic.slug() != null ? topic.slug() : topic.title();
+        ImageView courseIcon = LucideIcons.courseIcon(slugOrTitle, 18);
+        HBox titleHeader = new HBox(8, courseIcon, title);
+        titleHeader.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+
         Button startButton = new Button("Start learning");
+        startButton.setGraphic(LucideIcons.iconWithVariant("play", "brand", 13));
         startButton.getStyleClass().add("start-learning-button");
         startButton.setMaxWidth(Double.MAX_VALUE);
         startButton.setOnAction(event -> {
@@ -985,19 +1181,32 @@ public final class AppController {
             openTopicDrawer(topic);
         });
 
-        VBox body = new VBox(8.0, title, description, startButton);
+        VBox body = new VBox(8.0, titleHeader, description, startButton);
         body.getStyleClass().add("topic-card-body");
         VBox.setVgrow(description, javafx.scene.layout.Priority.ALWAYS);
 
         card.getChildren().addAll(thumbnail, body);
 
-        // Round only the card's corners; the image clips to match the top corners.
-        javafx.scene.shape.Rectangle clip = new javafx.scene.shape.Rectangle();
-        clip.setArcWidth(CARD_RADIUS * 2);
-        clip.setArcHeight(CARD_RADIUS * 2);
-        clip.widthProperty().bind(card.widthProperty());
-        clip.heightProperty().bind(card.heightProperty());
-        card.setClip(clip);
+        // Round only the top corners of the thumbnail image to match the card
+        javafx.scene.shape.Rectangle imgClip = new javafx.scene.shape.Rectangle();
+        imgClip.setArcWidth(CARD_RADIUS * 2);
+        imgClip.setArcHeight(CARD_RADIUS * 2);
+        imgClip.widthProperty().bind(card.widthProperty());
+        imgClip.setHeight(CARD_IMAGE_HEIGHT + CARD_RADIUS * 2);
+        thumbnail.setClip(imgClip);
+
+        card.hoverProperty().addListener((obs, wasHovered, isHovered) -> {
+            boolean isDark = appRoot != null && appRoot.getStyleClass().contains("dark-theme");
+            if (isHovered) {
+                if (isDark) {
+                    card.setStyle("-fx-border-color: #0089fc; -fx-border-width: 2px; -fx-effect: dropshadow(gaussian, rgba(0, 137, 252, 0.85), 24, 0.35, 0, 4); -fx-background-color: #242e34;");
+                } else {
+                    card.setStyle("-fx-border-color: #0089fc; -fx-border-width: 2px; -fx-effect: dropshadow(gaussian, rgba(0, 137, 252, 0.45), 20, 0.25, 0, 4); -fx-background-color: #ffffff;");
+                }
+            } else {
+                card.setStyle("");
+            }
+        });
 
         card.setOnMouseClicked(event -> openTopicDrawer(topic));
         card.setCursor(javafx.scene.Cursor.HAND);
@@ -1019,6 +1228,8 @@ public final class AppController {
             fileName = "topic-data-science.png";
         } else if (slug.contains("game")) {
             fileName = "topic-game-dev.png";
+        } else if (slug.contains("database") || slug.contains("db")) {
+            fileName = "topic-database.jpg";
         } else {
             fileName = "topic-languages.jpg";
         }
@@ -1034,6 +1245,7 @@ public final class AppController {
         selectedDrawerTopic = topic;
         topicDrawerImage.setImage(topicThumbnail(topic));
         topicDrawerTitle.setText(topic.title());
+        topicDrawerTitle.setGraphic(LucideIcons.courseIcon(topic.slug() != null ? topic.slug() : topic.title(), 22));
 
         int lessonCount = 0;
         int moduleCount = 0;
@@ -1092,13 +1304,13 @@ public final class AppController {
 
         if (slug.contains("web") || titleStr.contains("web")) {
             topicKey = "html5";
-            lang = ProgrammingLanguage.JAVASCRIPT;
+            lang = ProgrammingLanguage.HTML;
         } else if (slug.contains("app") || titleStr.contains("app")) {
             topicKey = "flutter";
             lang = ProgrammingLanguage.JAVA;
         } else if (slug.contains("language") || titleStr.contains("language")) {
-            topicKey = "cpp";
-            lang = ProgrammingLanguage.CPP;
+            topicKey = "python";
+            lang = ProgrammingLanguage.PYTHON;
         } else if (slug.contains("ai") || slug.contains("ml") || titleStr.contains("ai") || titleStr.contains("machine learning")) {
             topicKey = "ml_foundations";
             lang = ProgrammingLanguage.PYTHON;
@@ -1107,6 +1319,9 @@ public final class AppController {
             lang = ProgrammingLanguage.PYTHON;
         } else if (slug.contains("game") || titleStr.contains("game")) {
             topicKey = "math_games";
+            lang = ProgrammingLanguage.PYTHON;
+        } else if (slug.contains("database") || slug.contains("db") || titleStr.contains("database")) {
+            topicKey = "sql_fundamentals";
             lang = ProgrammingLanguage.PYTHON;
         } else {
             topicKey = "arrays";
@@ -1141,6 +1356,8 @@ public final class AppController {
             openDataScienceRoadmapWindow();
         } else if (slug.contains("game") || titleStr.contains("game")) {
             openGameDevRoadmapWindow();
+        } else if (slug.contains("database") || slug.contains("db") || titleStr.contains("database")) {
+            openDatabaseRoadmapWindow();
         } else {
             openFirstLesson(topicId);
         }
@@ -1270,8 +1487,25 @@ public final class AppController {
         }
     }
 
+
     public void openGameDevModule(String moduleKeyword) {
         openCurriculumTopicModule("game", moduleKeyword);
+    }
+
+    private void openDatabaseRoadmapWindow() {
+        try {
+            boolean isDark = appRoot != null && appRoot.getStyleClass().contains("dark-theme");
+            javafx.stage.Window owner = (appRoot != null && appRoot.getScene() != null)
+                    ? appRoot.getScene().getWindow() : null;
+            DatabaseTopicsWindow.show(owner, isDark, this::openDatabaseModule);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            setStudentStatus("Could not open Database topics: " + ex.getMessage());
+        }
+    }
+
+    public void openDatabaseModule(String moduleKeyword) {
+        openCurriculumTopicModule("database", moduleKeyword);
     }
 
     public void openCurriculumTopicModule(String topicKeyword, String moduleKeyword) {
@@ -1280,10 +1514,16 @@ public final class AppController {
             mainStage.toFront();
             mainStage.requestFocus();
         }
+        closeTopicDrawer();
+
+        // Immediately ensure the lesson pane is visible so the user is never stuck looking at the dashboard
+        setVisibleManaged(dashboardPane, false);
+        setVisibleManaged(lessonPane, true);
+        setVisibleManaged(profilePane, false);
+
         if (curriculumTree == null || curriculumTree.getRoot() == null) {
             return;
         }
-        closeTopicDrawer();
 
         TreeItem<NavigationItem> targetTopicItem = null;
         for (TreeItem<NavigationItem> item : curriculumTree.getRoot().getChildren()) {
@@ -1302,6 +1542,8 @@ public final class AppController {
         targetTopicItem.setExpanded(true);
 
         TreeItem<NavigationItem> targetModuleItem = null;
+        TreeItem<NavigationItem> directTargetLesson = null;
+
         if (moduleKeyword != null && !moduleKeyword.isBlank()) {
             for (TreeItem<NavigationItem> modItem : targetTopicItem.getChildren()) {
                 String modLabel = modItem.getValue().label();
@@ -1309,23 +1551,57 @@ public final class AppController {
                     targetModuleItem = modItem;
                     break;
                 }
+                // Check if any submodule or lesson under this module matches the keyword
+                for (TreeItem<NavigationItem> subItem : modItem.getChildren()) {
+                    String subLabel = subItem.getValue().label();
+                    if (matchesModule(subLabel, moduleKeyword)) {
+                        targetModuleItem = modItem;
+                        directTargetLesson = firstIncompleteLesson(subItem);
+                        if (directTargetLesson == null) directTargetLesson = firstLesson(subItem);
+                        break;
+                    }
+                    for (TreeItem<NavigationItem> lesItem : subItem.getChildren()) {
+                        String lesLabel = lesItem.getValue().label();
+                        if (matchesModule(lesLabel, moduleKeyword)) {
+                            targetModuleItem = modItem;
+                            directTargetLesson = lesItem;
+                            break;
+                        }
+                    }
+                    if (directTargetLesson != null) break;
+                }
+                if (targetModuleItem != null) break;
             }
         }
+
         if (targetModuleItem == null && !targetTopicItem.getChildren().isEmpty()) {
             targetModuleItem = targetTopicItem.getChildren().get(0);
         }
 
-        if (targetModuleItem != null) {
+        TreeItem<NavigationItem> targetLesson = directTargetLesson;
+        if (targetLesson == null && targetModuleItem != null) {
             targetModuleItem.setExpanded(true);
-            TreeItem<NavigationItem> targetLesson = firstIncompleteLesson(targetModuleItem);
+            targetLesson = firstIncompleteLesson(targetModuleItem);
             if (targetLesson == null) {
                 targetLesson = firstLesson(targetModuleItem);
             }
-            if (targetLesson != null) {
-                expandParents(targetLesson);
-                curriculumTree.getSelectionModel().clearSelection();
-                curriculumTree.getSelectionModel().select(targetLesson);
+        }
+        if (targetLesson == null) {
+            targetLesson = firstIncompleteLesson(targetTopicItem);
+            if (targetLesson == null) {
+                targetLesson = firstLesson(targetTopicItem);
+            }
+        }
+        if (targetLesson == null) {
+            targetLesson = firstLesson(curriculumTree.getRoot());
+        }
+
+        if (targetLesson != null) {
+            expandParents(targetLesson);
+            if (curriculumTree.getSelectionModel().getSelectedItem() == targetLesson) {
                 openNavigationItem(targetLesson);
+            } else {
+                curriculumTree.getSelectionModel().select(targetLesson);
             }
         }
     }
@@ -1391,92 +1667,144 @@ public final class AppController {
             return ml.contains("react") && !ml.contains("react native");
         }
 
-        // 10. AI / ML keys
-        if (kw.equals("ml_foundations")) {
+        // 10. App Development keys
+        if (kw.equals("statemgmt") || kw.contains("state") || kw.contains("bloc") || kw.contains("redux") || kw.contains("riverpod")) {
+            return ml.contains("state") || ml.contains("architecture");
+        }
+        if (kw.equals("publish") || kw.equals("appstore") || kw.equals("playstore") || kw.contains("publish") || kw.contains("deployment") || kw.contains("release") || kw.contains("deploy") || kw.contains("store")) {
+            return ml.contains("deployment") || ml.contains("store") || ml.contains("publish") || ml.contains("release");
+        }
+        if (kw.equals("mobileapi") || kw.contains("firebase") || kw.contains("api") || kw.contains("rest")) {
+            return ml.contains("api") || ml.contains("firebase");
+        }
+        if (kw.equals("sqlite") || kw.contains("room") || kw.contains("storage")) {
+            return ml.contains("sqlite") || ml.contains("room") || ml.contains("storage");
+        }
+        if (kw.equals("flutter") || kw.contains("dart")) {
+            return ml.contains("flutter") || ml.contains("dart");
+        }
+        if (kw.equals("kotlin") || kw.contains("compose") || kw.contains("android")) {
+            return ml.contains("kotlin") || ml.contains("android") || ml.contains("compose");
+        }
+        if (kw.equals("swift") || kw.contains("swiftui") || kw.contains("ios")) {
+            return ml.contains("swift") || ml.contains("ios") || ml.contains("swiftui");
+        }
+
+        // 11. DSA subtopics & keys
+        if (kw.equals("arrays") || kw.equals("array") || kw.equals("linked lists") || kw.equals("linked list")
+                || kw.equals("stacks") || kw.equals("stack") || kw.equals("queues") || kw.equals("queue")
+                || kw.equals("hash maps") || kw.equals("hash map") || kw.equals("heaps") || kw.equals("heap")
+                || kw.equals("trees") || kw.equals("tree") || kw.equals("bst") || kw.equals("dsu") || kw.equals("trie")) {
+            return ml.contains("data structure") || ml.contains("linear") || ml.contains("tree");
+        }
+        if (kw.contains("sort")) {
+            return ml.contains("sort");
+        }
+        if (kw.contains("search")) {
+            return ml.contains("search");
+        }
+        if (kw.contains("graph") || kw.contains("bfs") || kw.contains("dfs") || kw.contains("dijkstra")) {
+            return ml.contains("graph");
+        }
+        if (kw.contains("range") || kw.contains("segment") || kw.contains("fenwick")) {
+            return ml.contains("range");
+        }
+        if (kw.contains("paradigm") || kw.contains("dp") || kw.contains("greedy") || kw.contains("dynamic") || kw.contains("recursion") || kw.contains("backtrack")) {
+            return ml.contains("paradigm") || ml.contains("greedy") || ml.contains("dynamic");
+        }
+        if (kw.contains("string") || kw.contains("kmp")) {
+            return ml.contains("string");
+        }
+        if (kw.contains("math") || kw.contains("algebra") || kw.contains("number")) {
+            return ml.contains("math") || ml.contains("algebra");
+        }
+
+        // 12. AI / ML keys
+        if (kw.equals("ml_foundations") || kw.contains("supervised") || kw.contains("learning foundation")) {
             return ml.contains("learning foundation") || ml.contains("machine learning");
         }
-        if (kw.equals("math_ai")) {
-            return ml.contains("math for machine learning") || ml.contains("mathematical");
+        if (kw.equals("math_ai") || kw.contains("linear algebra") || kw.contains("calculus")) {
+            return ml.contains("math for machine learning") || ml.contains("mathematical") || ml.contains("math");
         }
-        if (kw.equals("scikit")) {
+        if (kw.equals("scikit") || kw.contains("sklearn")) {
             return ml.contains("scikit");
         }
-        if (kw.equals("deep_learning")) {
-            return ml.contains("deep learning");
+        if (kw.equals("deep_learning") || kw.contains("deep") || kw.contains("neural")) {
+            return ml.contains("deep learning") || ml.contains("neural");
         }
-        if (kw.equals("vision")) {
+        if (kw.equals("vision") || kw.contains("cv") || kw.contains("opencv") || kw.contains("cnn")) {
             return ml.contains("vision");
         }
-        if (kw.equals("nlp")) {
+        if (kw.equals("nlp") || kw.contains("transformer") || kw.contains("natural language")) {
             return ml.contains("natural language") || ml.contains("nlp");
         }
-        if (kw.equals("genai")) {
+        if (kw.equals("genai") || kw.contains("generative") || kw.contains("llm") || kw.contains("prompt")) {
             return ml.contains("generative ai") || ml.contains("llm");
         }
-        if (kw.equals("mlops")) {
+        if (kw.equals("mlops") || kw.contains("fastapi") || kw.contains("serving")) {
             return ml.contains("mlops");
         }
 
-        // 11. Data Science keys
-        if (kw.equals("numpy")) {
-            return ml.contains("numpy");
+        // 13. Data Science keys
+        if (kw.equals("numpy") || kw.contains("numerical")) {
+            return ml.contains("numpy") || ml.contains("numerical");
         }
-        if (kw.equals("pandas")) {
-            return ml.contains("pandas");
+        if (kw.equals("pandas") || kw.contains("wrangling") || kw.contains("dataframe")) {
+            return ml.contains("pandas") || ml.contains("wrangling");
         }
-        if (kw.equals("eda")) {
+        if (kw.equals("eda") || kw.contains("exploratory") || kw.contains("seaborn") || kw.contains("matplotlib")) {
             return ml.contains("exploratory") || ml.contains("eda");
         }
-        if (kw.equals("statistics")) {
-            return ml.contains("statistic");
+        if (kw.equals("statistics") || kw.contains("hypothesis") || kw.contains("probability")) {
+            return ml.contains("statistic") || ml.contains("hypothesis");
         }
-        if (kw.equals("feature_eng")) {
+        if (kw.equals("feature_eng") || kw.contains("feature") || kw.contains("pca")) {
             return ml.contains("feature engineering") || ml.contains("feature");
         }
-        if (kw.equals("bigdata")) {
+        if (kw.equals("bigdata") || kw.contains("spark") || kw.contains("pyspark")) {
             return ml.contains("big data") || ml.contains("spark");
         }
-        if (kw.equals("sql_analytics")) {
+        if (kw.equals("sql_analytics") || kw.contains("warehouse") || kw.contains("analytics")) {
             return ml.contains("analytics") || ml.contains("warehouses");
         }
-        if (kw.equals("bi_dashboards")) {
+        if (kw.equals("bi_dashboards") || kw.contains("dashboard") || kw.contains("bi") || kw.contains("streamlit")) {
             return ml.contains("dashboard") || ml.contains("bi &") || ml.contains("streamlit");
         }
 
-        // 12. Game Dev keys
-        if (kw.equals("math_games")) {
+        // 14. Game Dev keys
+        if (kw.equals("math_games") || kw.contains("game math")) {
             return ml.contains("game math");
         }
-        if (kw.equals("pygame")) {
-            return ml.contains("pygame");
+        if (kw.equals("pygame") || kw.contains("2d")) {
+            return ml.contains("pygame") || ml.contains("2d");
         }
-        if (kw.equals("unity_basics")) {
+        if (kw.equals("unity_basics") || kw.contains("unity foundation") || kw.contains("unity engine")) {
             return ml.contains("unity engine") || ml.contains("unity foundations");
         }
-        if (kw.equals("unity_3d")) {
+        if (kw.equals("unity_3d") || kw.contains("unity 3d")) {
             return ml.contains("unity 3d");
         }
-        if (kw.equals("unreal")) {
+        if (kw.equals("unreal") || kw.contains("blueprint")) {
             return ml.contains("unreal");
         }
-        if (kw.equals("game_physics")) {
+        if (kw.equals("game_physics") || kw.contains("physics") || kw.contains("collision")) {
             return ml.contains("game physics") || ml.contains("physics");
         }
-        if (kw.equals("audio_vfx")) {
+        if (kw.equals("audio_vfx") || kw.contains("audio") || kw.contains("vfx") || kw.contains("shader")) {
             return ml.contains("audio") || ml.contains("vfx") || ml.contains("shaders");
         }
-        if (kw.equals("game_publish")) {
+        if (kw.equals("game_publish") || kw.contains("game publish") || kw.contains("optimization") || kw.contains("steam")) {
             return ml.contains("game publish") || ml.contains("optimization") || ml.contains("publishing");
         }
 
-        // 13. Clean alphanumeric matching (handles underscores, spaces, hyphens)
+        // 15. Clean alphanumeric matching (handles underscores, spaces, hyphens)
         String cleanMl = ml.replaceAll("[^a-z0-9]", "");
         String cleanKw = kw.replaceAll("[^a-z0-9]", "");
         if (!cleanKw.isEmpty() && cleanMl.contains(cleanKw)) {
             return true;
         }
 
-        // 14. Fallback substring
+        // 16. Fallback substring
         return ml.contains(kw) || kw.contains(ml);
     }
 
@@ -1735,9 +2063,22 @@ public final class AppController {
     }
 
     private void openNavigationItem(TreeItem<NavigationItem> selected) {
-        if (selected == null || selected.getValue().lessonId() == null) {
+        if (selected == null) {
             return;
         }
+        if (selected.getValue() == null || selected.getValue().lessonId() == null) {
+            TreeItem<NavigationItem> fl = firstLesson(selected);
+            if (fl != null && fl != selected) {
+                openNavigationItem(fl);
+            }
+            return;
+        }
+
+        // Immediately ensure the lesson pane is visible so the user is never stuck on the dashboard
+        setVisibleManaged(dashboardPane, false);
+        setVisibleManaged(lessonPane, true);
+        setVisibleManaged(profilePane, false);
+
         NavigationItem item = selected.getValue();
         setStudentStatus("Loading lesson...");
         apiClient.enroll(item.topicId())
@@ -1753,27 +2094,17 @@ public final class AppController {
     }
 
     private void displayLesson(LessonDetails lesson, TreeItem<NavigationItem> selected) {
+        // Immediately ensure the lesson pane is visible
+        setVisibleManaged(dashboardPane, false);
+        setVisibleManaged(lessonPane, true);
+        setVisibleManaged(profilePane, false);
+
         stopLessonVideo();
         closeTopicDrawer();
         currentLesson = lesson;
         lessonPathLabel.setText(pathFor(selected));
         lessonTitleLabel.setText(lesson.title());
         lessonSummaryLabel.setText(lesson.summary());
-        MarkdownRenderer.render(lesson.bodyMarkdown(), markdownContent);
-        updatingCompletion = true;
-        lessonCompletedCheckBox.setSelected(lesson.completed());
-        lessonCompletedCheckBox.setMouseTransparent(true);
-        lessonCompletedCheckBox.setFocusTraversable(false);
-        if (lesson.completed()) {
-            lessonCompletedCheckBox.setText("Finished ✓");
-            lessonCompletedCheckBox.setStyle("-fx-text-fill: #16a34a; -fx-opacity: 1.0; -fx-font-weight: bold;");
-        } else {
-            lessonCompletedCheckBox.setText("Pass Quiz (≥ 4/8) to Finish");
-            lessonCompletedCheckBox.setStyle("-fx-text-fill: #64748b; -fx-opacity: 0.9;");
-        }
-        updatingCompletion = false;
-        quizButton.setDisable(false);
-        quizButton.setText("Take quiz");
 
         String path = pathFor(selected);
         String searchContext = path + " " + lesson.title();
@@ -1788,6 +2119,7 @@ public final class AppController {
         boolean isAi = lowerPath.contains("ai") || lowerPath.contains("machine learning") || isAiMlTopicId(selTopicId);
         boolean isDs = lowerPath.contains("science") || lowerPath.contains("data science") || isDataScienceTopicId(selTopicId);
         boolean isGame = lowerPath.contains("game") || isGameDevTopicId(selTopicId);
+        boolean isDb = lowerPath.contains("database") || lowerPath.contains("sql") || lowerPath.contains("nosql") || lowerPath.contains("redis") || lowerPath.contains("postgres") || lowerPath.contains("mongodb") || isDatabaseTopicId(selTopicId);
 
         if (isLang) lastOpenedTopic = "language";
         else if (isWeb) lastOpenedTopic = "web";
@@ -1796,10 +2128,20 @@ public final class AppController {
         else if (isAi) lastOpenedTopic = "ai";
         else if (isDs) lastOpenedTopic = "science";
         else if (isGame) lastOpenedTopic = "game";
+        else if (isDb) lastOpenedTopic = "database";
 
         ProgrammingLanguage detectedLang = ProgrammingLanguage.PYTHON;
         String langBadgeText = "Python 3";
-        if (lowerPath.contains("python") || lowerTitle.contains("python")) {
+        if (lowerPath.contains("html") || lowerTitle.contains("html")) {
+            detectedLang = ProgrammingLanguage.HTML;
+            langBadgeText = "HTML5";
+        } else if (lowerPath.contains("css") || lowerTitle.contains("css")) {
+            detectedLang = ProgrammingLanguage.CSS;
+            langBadgeText = "CSS3";
+        } else if (lowerPath.contains("sql") || lowerTitle.contains("sql") || lowerPath.contains("database") || lowerTitle.contains("database") || lowerPath.contains("postgres")) {
+            detectedLang = ProgrammingLanguage.SQL;
+            langBadgeText = "SQL";
+        } else if (lowerPath.contains("python") || lowerTitle.contains("python")) {
             detectedLang = ProgrammingLanguage.PYTHON;
             langBadgeText = "Python 3";
         } else if (lowerPath.contains("java enterprise") || lowerPath.contains("java") || lowerTitle.contains("java")) {
@@ -1818,8 +2160,8 @@ public final class AppController {
             detectedLang = ProgrammingLanguage.CSHARP;
             langBadgeText = "C#";
         } else if (isDsa) {
-            detectedLang = ProgrammingLanguage.CPP;
-            langBadgeText = "C++ / DSA";
+            detectedLang = ProgrammingLanguage.JAVA;
+            langBadgeText = "Java / DSA";
         }
 
         currentLessonLanguage = detectedLang;
@@ -1827,8 +2169,37 @@ public final class AppController {
             playgroundLangBadge.setText(langBadgeText);
         }
 
+        try {
+            MarkdownRenderer.render(lesson.bodyMarkdown(), markdownContent, detectedLang);
+        } catch (Throwable t) {
+            System.err.println("[AppController] Markdown render error: " + t.getMessage());
+        }
+
+        updatingCompletion = true;
+        lessonCompletedCheckBox.setSelected(lesson.completed());
+        lessonCompletedCheckBox.setMouseTransparent(true);
+        lessonCompletedCheckBox.setFocusTraversable(false);
+        if (lesson.completed()) {
+            lessonCompletedCheckBox.setText("Finished ✓");
+            lessonCompletedCheckBox.setStyle("-fx-text-fill: #16a34a; -fx-opacity: 1.0; -fx-font-weight: bold;");
+        } else {
+            lessonCompletedCheckBox.setText("Pass Quiz (≥ 4/8) to Finish");
+            lessonCompletedCheckBox.setStyle("-fx-text-fill: #64748b; -fx-opacity: 0.9;");
+        }
+        updatingCompletion = false;
+        quizButton.setDisable(false);
+        quizButton.setText("Take quiz");
+
         if (isLang) {
-            currentLessonTopicKey = "arrays";
+            if (lowerPath.contains("python")) currentLessonTopicKey = "python";
+            else if (lowerPath.contains("java") && !lowerPath.contains("script")) currentLessonTopicKey = "java";
+            else if (lowerPath.contains("c++") || lowerPath.contains("cpp")) currentLessonTopicKey = "cpp";
+            else if (lowerPath.contains(" c ") || lowerPath.contains("pointers") || lowerPath.contains("memory") || lowerPath.equals("c") || lowerPath.contains("low-level")) currentLessonTopicKey = "c";
+            else if (lowerPath.contains("typescript") || lowerPath.contains("javascript") || lowerPath.contains("ts") || lowerPath.contains("js")) currentLessonTopicKey = "typescript";
+            else if (lowerPath.contains("rust")) currentLessonTopicKey = "rust";
+            else if (lowerPath.contains("golang") || lowerPath.contains("go")) currentLessonTopicKey = "golang";
+            else if (lowerPath.contains("sql") || lowerPath.contains("query")) currentLessonTopicKey = "sql";
+            else currentLessonTopicKey = "python";
         } else if (isWeb) {
             if (lowerPath.contains("html")) currentLessonTopicKey = "html5";
             else if (lowerPath.contains("css")) currentLessonTopicKey = "css3";
@@ -1896,85 +2267,179 @@ public final class AppController {
             else if (lowerPath.contains("string") || lowerPath.contains("kmp")) currentLessonTopicKey = "string algorithms";
             else if (lowerPath.contains("math") || lowerPath.contains("number")) currentLessonTopicKey = "mathematics";
             else currentLessonTopicKey = "arrays";
+        } else if (isDb) {
+            if (lowerPath.contains("sql fundamental") || lowerPath.contains("select") || lowerPath.contains("aggregate")) currentLessonTopicKey = "sql_fundamentals";
+            else if (lowerPath.contains("design") || lowerPath.contains("normali") || lowerPath.contains("er diagram") || lowerPath.contains("foreign key")) currentLessonTopicKey = "db_design";
+            else if (lowerPath.contains("join") || lowerPath.contains("cte") || lowerPath.contains("window function") || lowerPath.contains("advanced sql")) currentLessonTopicKey = "advanced_sql";
+            else if (lowerPath.contains("postgres") || lowerPath.contains("psql") || lowerPath.contains("jsonb") || lowerPath.contains("stored procedure")) currentLessonTopicKey = "postgresql";
+            else if (lowerPath.contains("mongo") || lowerPath.contains("nosql") || lowerPath.contains("document") || lowerPath.contains("bson")) currentLessonTopicKey = "mongodb";
+            else if (lowerPath.contains("index") || lowerPath.contains("optim") || lowerPath.contains("explain") || lowerPath.contains("query plan")) currentLessonTopicKey = "db_indexing";
+            else if (lowerPath.contains("transaction") || lowerPath.contains("acid") || lowerPath.contains("concurren") || lowerPath.contains("deadlock")) currentLessonTopicKey = "transactions";
+            else if (lowerPath.contains("redis") || lowerPath.contains("cache") || lowerPath.contains("pub/sub") || lowerPath.contains("in-memory")) currentLessonTopicKey = "redis";
+            else currentLessonTopicKey = "sql_fundamentals";
         }
 
-        String rawCode = lesson.exampleCode() == null ? "" : lesson.exampleCode();
-        String activeCode = getEnhancedExampleCode(lesson.title(), path, rawCode, detectedLang);
-        setPlaygroundCode(activeCode);
-        clearPlaygroundConsole();
+        try {
+            CourseCategory courseCategory = CourseCategory.fromTopicKey(currentLessonTopicKey);
+            String rawCode = lesson.exampleCode() == null ? "" : lesson.exampleCode();
+            PracticeEnvironment env = PracticeEnvironment.forCategory(courseCategory, lesson.title(), rawCode);
 
-        String videoTitle = "";
-        if (isWeb) {
-            currentLessonVideoUrl = WebDevTopicsWindow.getVideoUrlFor(searchContext);
-            var t = WebDevTopicsWindow.getTopicFor(searchContext);
-            videoTitle = t.title() + " — " + t.defaultVideoTitle();
-        } else if (isApp) {
-            currentLessonVideoUrl = AppDevTopicsWindow.getVideoUrlFor(searchContext);
-            var t = AppDevTopicsWindow.getTopicFor(searchContext);
-            videoTitle = t.title() + " — " + t.defaultVideoTitle();
-        } else if (isDsa) {
-            currentLessonVideoUrl = DsaTopicsWindow.getVideoUrlFor(searchContext);
-            var t = DsaTopicsWindow.getTopicFor(searchContext);
-            videoTitle = t.title() + " — " + t.defaultVideoTitle();
-        } else if (isLang) {
-            currentLessonVideoUrl = LanguagesTopicsWindow.getVideoUrlFor(searchContext);
-            var t = LanguagesTopicsWindow.getTopicFor(searchContext);
-            videoTitle = t.title() + " — " + t.defaultVideoTitle();
-        } else if (isAi) {
-            currentLessonVideoUrl = AiMlTopicsWindow.getVideoUrlFor(searchContext);
-            var t = AiMlTopicsWindow.getTopicFor(searchContext);
-            videoTitle = t.title() + " — " + t.defaultVideoTitle();
-        } else if (isDs) {
-            currentLessonVideoUrl = DataScienceTopicsWindow.getVideoUrlFor(searchContext);
-            var t = DataScienceTopicsWindow.getTopicFor(searchContext);
-            videoTitle = t.title() + " — " + t.defaultVideoTitle();
-        } else if (isGame) {
-            currentLessonVideoUrl = GameDevTopicsWindow.getVideoUrlFor(searchContext);
-            var t = GameDevTopicsWindow.getTopicFor(searchContext);
-            videoTitle = t.title() + " — " + t.defaultVideoTitle();
-        } else {
-            currentLessonVideoUrl = null;
-        }
-
-        boolean hasVideo = currentLessonVideoUrl != null && !currentLessonVideoUrl.isBlank();
-        if (lessonWatchVideoBtn != null) {
-            setVisibleManaged(lessonWatchVideoBtn, false);
-        }
-        if (lessonCopyVideoBtn != null) {
-            setVisibleManaged(lessonCopyVideoBtn, false);
-        }
-
-        if (lessonVideoContainer != null) {
-            setVisibleManaged(lessonVideoContainer, hasVideo);
-            if (hasVideo) {
-                if (lessonVideoTitleLabel != null) {
-                    lessonVideoTitleLabel.setText(videoTitle);
+            if (env.isTheoryOnly()) {
+                setPlaygroundCode("");
+                if (examplePlaygroundSection != null) {
+                    examplePlaygroundSection.setManaged(false);
+                    examplePlaygroundSection.setVisible(false);
                 }
-                String thumbUrl = WebDevTopicsWindow.getThumbnailUrl(currentLessonVideoUrl);
-                if (thumbUrl != null && lessonVideoPoster != null) {
-                    try {
-                        lessonVideoPoster.setImage(new Image(thumbUrl, true));
-                        lessonVideoPoster.setFitWidth(860);
-                        lessonVideoPoster.setFitHeight(484);
-                    } catch (Throwable ignored) {}
+                if (lessonPlaygroundWrapper != null) {
+                    lessonPlaygroundWrapper.setManaged(false);
+                    lessonPlaygroundWrapper.setVisible(false);
                 }
-                if (embeddedWebPlayerPane != null) {
-                    embeddedWebPlayerPane.setCursor(Cursor.HAND);
+            } else {
+                String activeCode = getEnhancedExampleCode(lesson.title(), path, rawCode, detectedLang);
+                setPlaygroundCode(activeCode);
+                clearPlaygroundConsole();
+
+                if (examplePlaygroundSection != null) {
+                    examplePlaygroundSection.setManaged(true);
+                    examplePlaygroundSection.setVisible(true);
+                }
+                if (lessonPlaygroundWrapper != null) {
+                    lessonPlaygroundWrapper.setManaged(true);
+                    lessonPlaygroundWrapper.setVisible(true);
+                }
+                if (playgroundTitleLabel != null) {
+                    playgroundTitleLabel.setText(env.displayName());
+                    boolean isDark = appRoot != null && appRoot.getStyleClass().contains("dark-theme");
+                    playgroundTitleLabel.setGraphic(env.iconGraphic(15, isDark));
+                    playgroundTitleLabel.setGraphicTextGap(6);
+                }
+                if (playgroundLangBadge != null) {
+                    if (env.isMlLab()) {
+                        playgroundLangBadge.setText("Python / NumPy");
+                    } else if (env.isDataScienceLab()) {
+                        playgroundLangBadge.setText("Pandas / Analytics");
+                    } else if (env.isWebPreview()) {
+                        playgroundLangBadge.setText("HTML5 / CSS / JS");
+                    } else if (env.isAppPreview()) {
+                        playgroundLangBadge.setText("Mobile / Native");
+                    } else if (env.isGamePreview()) {
+                        playgroundLangBadge.setText("2D Physics Engine");
+                    } else {
+                        playgroundLangBadge.setText(langBadgeText);
+                    }
                 }
             }
+
+            renderCourseAwareLearningBlocks(courseCategory, currentLessonTopicKey, lesson, path);
+        } catch (Throwable t) {
+            System.err.println("[AppController] Learning blocks/playground setup error: " + t.getMessage());
         }
 
-        boolean hasSimulation = lesson.simulation() != null;
-        setVisibleManaged(simulationSection, hasSimulation);
-        if (hasSimulation) {
-            simulationContentController.setDarkMode(appRoot != null && appRoot.getStyleClass().contains("dark-theme"));
-            simulationContentController.load(lesson.simulation());
-        } else {
-            simulationContentController.stop();
+        try {
+            String videoTitle = "";
+            if (isWeb) {
+                currentLessonVideoUrl = WebDevTopicsWindow.getVideoUrlFor(searchContext);
+                var t = WebDevTopicsWindow.getTopicFor(searchContext);
+                videoTitle = t.title() + " — " + t.defaultVideoTitle();
+            } else if (isApp) {
+                currentLessonVideoUrl = AppDevTopicsWindow.getVideoUrlFor(searchContext);
+                var t = AppDevTopicsWindow.getTopicFor(searchContext);
+                videoTitle = t.title() + " — " + t.defaultVideoTitle();
+            } else if (isDsa) {
+                currentLessonVideoUrl = DsaTopicsWindow.getVideoUrlFor(searchContext);
+                var t = DsaTopicsWindow.getTopicFor(searchContext);
+                videoTitle = t.title() + " — " + t.defaultVideoTitle();
+            } else if (isLang) {
+                currentLessonVideoUrl = LanguagesTopicsWindow.getVideoUrlFor(searchContext);
+                var t = LanguagesTopicsWindow.getTopicFor(searchContext);
+                videoTitle = t.title() + " — " + t.defaultVideoTitle();
+            } else if (isAi) {
+                currentLessonVideoUrl = AiMlTopicsWindow.getVideoUrlFor(searchContext);
+                var t = AiMlTopicsWindow.getTopicFor(searchContext);
+                videoTitle = t.title() + " — " + t.defaultVideoTitle();
+            } else if (isDs) {
+                currentLessonVideoUrl = DataScienceTopicsWindow.getVideoUrlFor(searchContext);
+                var t = DataScienceTopicsWindow.getTopicFor(searchContext);
+                videoTitle = t.title() + " — " + t.defaultVideoTitle();
+            } else if (isGame) {
+                currentLessonVideoUrl = GameDevTopicsWindow.getVideoUrlFor(searchContext);
+                var t = GameDevTopicsWindow.getTopicFor(searchContext);
+                videoTitle = t.title() + " — " + t.defaultVideoTitle();
+            } else if (isDb) {
+                currentLessonVideoUrl = DatabaseTopicsWindow.getVideoUrlFor(searchContext);
+                var t = DatabaseTopicsWindow.getTopicFor(searchContext);
+                videoTitle = t.title() + " — " + t.defaultVideoTitle();
+            } else {
+                currentLessonVideoUrl = null;
+            }
+
+            boolean hasVideo = currentLessonVideoUrl != null && !currentLessonVideoUrl.isBlank();
+            if (lessonWatchVideoBtn != null) {
+                setVisibleManaged(lessonWatchVideoBtn, false);
+            }
+            if (lessonCopyVideoBtn != null) {
+                setVisibleManaged(lessonCopyVideoBtn, false);
+            }
+
+            if (lessonVideoContainer != null) {
+                setVisibleManaged(lessonVideoContainer, hasVideo);
+                if (hasVideo) {
+                    if (lessonVideoTitleLabel != null) {
+                        lessonVideoTitleLabel.setText(videoTitle);
+                    }
+                    String thumbUrl = WebDevTopicsWindow.getThumbnailUrl(currentLessonVideoUrl);
+                    if (thumbUrl != null && lessonVideoPoster != null) {
+                        try {
+                            lessonVideoPoster.setImage(new Image(thumbUrl, true));
+                            lessonVideoPoster.setFitWidth(860);
+                            lessonVideoPoster.setFitHeight(484);
+                        } catch (Throwable ignored) {}
+                    }
+                    if (embeddedWebPlayerPane != null) {
+                        embeddedWebPlayerPane.setCursor(Cursor.HAND);
+                    }
+                }
+            }
+        } catch (Throwable t) {
+            System.err.println("[AppController] Video setup error: " + t.getMessage());
         }
-        setVisibleManaged(dashboardPane, false);
-        setVisibleManaged(lessonPane, true);
-        setVisibleManaged(profilePane, false);
+
+        try {
+            boolean hasSimulation = lesson.simulation() != null;
+            setVisibleManaged(simulationSection, hasSimulation);
+            if (hasSimulation && simulationContentController != null) {
+                simulationContentController.setDarkMode(appRoot != null && appRoot.getStyleClass().contains("dark-theme"));
+                simulationContentController.load(lesson.simulation());
+            } else if (simulationContentController != null) {
+                simulationContentController.stop();
+            }
+        } catch (Throwable t) {
+            System.err.println("[AppController] Simulation setup error: " + t.getMessage());
+        }
+    }
+
+    private void renderCourseAwareLearningBlocks(CourseCategory category, String topicKey, LessonDetails lesson, String path) {
+        if (category == null || category.isLanguagesOrDsa() || markdownContent == null || lesson == null) {
+            return;
+        }
+
+        boolean isDark = appRoot != null && appRoot.getStyleClass().contains("dark-theme");
+        List<LearningBlock> blocks = CourseLearningOrchestrator.buildLessonBlocks(category, topicKey, lesson.title(), path);
+
+        currentActiveWebPreview = null;
+
+        for (LearningBlock block : blocks) {
+            if (block instanceof ObjectiveBlock) {
+                // Prepend learning objective to top of lesson content
+                markdownContent.getChildren().add(0, block.render(isDark));
+            } else {
+                if (block instanceof LiveWebPreviewBlock lwp) {
+                    currentActiveWebPreview = lwp;
+                }
+                // Append interactive blocks right below lesson markdown and above playground
+                markdownContent.getChildren().add(block.render(isDark));
+            }
+        }
     }
 
     private boolean isWebTopicId(Long topicId) {
@@ -2046,6 +2511,18 @@ public final class AppController {
                         && ((t.slug() != null && t.slug().toLowerCase(Locale.ROOT).contains("game"))
                             || (t.title() != null && t.title().toLowerCase(Locale.ROOT).contains("game"))));
     }
+
+    private boolean isDatabaseTopicId(Long topicId) {
+        if (topicId == null || topics == null) {
+            return false;
+        }
+        return topics.stream()
+                .anyMatch(t -> topicId.equals(t.id())
+                        && ((t.slug() != null && (t.slug().toLowerCase(Locale.ROOT).contains("database") || t.slug().toLowerCase(Locale.ROOT).equals("db")))
+                            || (t.title() != null && t.title().toLowerCase(Locale.ROOT).contains("database"))));
+    }
+
+
 
     @FXML
     private void startLessonVideo() {
@@ -2148,11 +2625,9 @@ public final class AppController {
                 lessonWebView.getEngine().executeScript(
                     "if (window.seekBy) {\n"
                     + "  window.seekBy(" + seconds + ");\n"
-                    + "} else {\n"
-                    + "  var ifr = document.querySelector('iframe');\n"
-                    + "  if (ifr && ifr.contentWindow) {\n"
-                    + "    ifr.contentWindow.postMessage(JSON.stringify({event:'command', func:'seekTo', args:[Math.max(0, (window.localCurrentTime || 0) + " + seconds + "), true]}), '*');\n"
-                    + "  }\n"
+                    + "} else if (window.player && typeof window.player.seekTo === 'function') {\n"
+                    + "  var cur = window.player.getCurrentTime() || 0;\n"
+                    + "  window.player.seekTo(Math.max(0, cur + " + seconds + "), true);\n"
                     + "}"
                 );
                 setStudentStatus((seconds > 0 ? "Skipped forward +" : "Rewound ") + Math.abs(seconds) + "s");
@@ -2180,6 +2655,8 @@ public final class AppController {
             openDataScienceRoadmapWindow();
         } else if ("game".equalsIgnoreCase(lastOpenedTopic)) {
             openGameDevRoadmapWindow();
+        } else if ("database".equalsIgnoreCase(lastOpenedTopic)) {
+            openDatabaseRoadmapWindow();
         }
     }
 
@@ -2197,15 +2674,15 @@ public final class AppController {
             WebDevTopicsWindow.copyToClipboard(currentLessonVideoUrl);
             setStudentStatus("Video lecture URL copied to clipboard!");
             if (lessonCopyVideoBtn != null) {
-                lessonCopyVideoBtn.setText("✓ Copied!");
+                lessonCopyVideoBtn.setText("Copied!");
                 javafx.animation.PauseTransition pause = new javafx.animation.PauseTransition(javafx.util.Duration.seconds(2));
-                pause.setOnFinished(ev -> lessonCopyVideoBtn.setText("📋 Copy Video Link"));
+                pause.setOnFinished(ev -> lessonCopyVideoBtn.setText("Copy Link"));
                 pause.play();
             }
             if (lessonVideoCopyLinkBtn != null) {
-                lessonVideoCopyLinkBtn.setText("✓ Copied!");
+                lessonVideoCopyLinkBtn.setText("Copied!");
                 javafx.animation.PauseTransition pause = new javafx.animation.PauseTransition(javafx.util.Duration.seconds(2));
-                pause.setOnFinished(ev -> lessonVideoCopyLinkBtn.setText("📋 Copy Link"));
+                pause.setOnFinished(ev -> lessonVideoCopyLinkBtn.setText("Copy"));
                 pause.play();
             }
         }
@@ -2805,6 +3282,120 @@ public final class AppController {
                         }
                     }
                     """.formatted(title, title);
+            case HTML -> """
+                    <!-- CodeTrail Interactive Playground: HTML5 & Web Components -->
+                    <!-- Topic: %s -->
+                    <!DOCTYPE html>
+                    <html lang="en">
+                    <head>
+                        <meta charset="UTF-8">
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                        <title>%s - CodeTrail</title>
+                        <style>
+                            body {
+                                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                                margin: 20px;
+                                background: #0f172a;
+                                color: #f8fafc;
+                                line-height: 1.6;
+                            }
+                            .card {
+                                background: #1e293b;
+                                border: 1px solid #334155;
+                                border-radius: 8px;
+                                padding: 20px;
+                                max-width: 600px;
+                            }
+                            h2 { color: #38bdf8; margin-top: 0; }
+                            .badge {
+                                display: inline-block;
+                                background: #0369a1;
+                                color: #fff;
+                                padding: 4px 10px;
+                                border-radius: 4px;
+                                font-size: 12px;
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="card">
+                            <span class="badge">Web Component</span>
+                            <h2>%s</h2>
+                            <p>Build and preview modern semantic web elements in real-time.</p>
+                        </div>
+                    </body>
+                    </html>
+                    """.formatted(title, title, title);
+            case CSS -> """
+                    /* CodeTrail Interactive Playground: Modern CSS3 */
+                    /* Topic: %s */
+
+                    :root {
+                        --primary: #38bdf8;
+                        --primary-hover: #0284c7;
+                        --bg-surface: #1e293b;
+                        --text-light: #f8fafc;
+                        --text-muted: #94a3b8;
+                        --radius: 8px;
+                    }
+
+                    .container {
+                        display: flex;
+                        flex-direction: column;
+                        gap: 16px;
+                        max-width: 600px;
+                        margin: 0 auto;
+                        padding: 24px;
+                    }
+
+                    .card {
+                        background-color: var(--bg-surface);
+                        border: 1px solid #334155;
+                        border-radius: var(--radius);
+                        padding: 20px;
+                        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+                        transition: transform 0.2s ease, border-color 0.2s ease;
+                    }
+
+                    .card:hover {
+                        transform: translateY(-2px);
+                        border-color: var(--primary);
+                    }
+
+                    h2 {
+                        color: var(--primary);
+                        margin-bottom: 8px;
+                    }
+                    """.formatted(title);
+            case SQL -> """
+                    -- CodeTrail Interactive Playground: SQL & Relational Analytics
+                    -- Topic: %s
+
+                    CREATE TABLE IF NOT EXISTS students (
+                        student_id INTEGER PRIMARY KEY,
+                        name VARCHAR(100) NOT NULL,
+                        course VARCHAR(100) NOT NULL,
+                        score DECIMAL(5, 2) NOT NULL,
+                        enrollment_date DATE DEFAULT CURRENT_DATE
+                    );
+
+                    INSERT INTO students (student_id, name, course, score) VALUES
+                        (101, 'Alex Rivera', 'Web Development', 92.5),
+                        (102, 'Maria Santos', 'Data Science', 88.0),
+                        (103, 'Jordan Lee', 'AI & Machine Learning', 95.0),
+                        (104, 'Taylor Swift', 'App Development', 84.5),
+                        (105, 'Sam Wilson', 'Web Development', 79.0);
+
+                    -- Analytical Query: Average Score by Course
+                    SELECT 
+                        course,
+                        COUNT(*) AS total_students,
+                        ROUND(AVG(score), 2) AS average_score,
+                        MAX(score) AS highest_score
+                    FROM students
+                    GROUP BY course
+                    ORDER BY average_score DESC;
+                    """.formatted(title);
         };
     }
 
@@ -2814,6 +3405,9 @@ public final class AppController {
         if (code == null || code.isBlank()) {
             if (playgroundStatusLabel != null) playgroundStatusLabel.setText("Code is empty");
             return;
+        }
+        if (currentActiveWebPreview != null) {
+            currentActiveWebPreview.updateContent(code);
         }
         if (playgroundRunBtn != null) playgroundRunBtn.setDisable(true);
         if (playgroundStatusLabel != null) {
@@ -2956,7 +3550,8 @@ public final class AppController {
                     setText("");
                 } else {
                     setText(item.displayName());
-                    setStyle("-fx-text-fill: #ffffff !important; -fx-font-weight: 700 !important; -fx-font-size: 11.5px !important; -fx-background-color: transparent !important;");
+                    setTextFill(Color.WHITE);
+                    setStyle("-fx-text-fill: #ffffff; -fx-font-weight: 700; -fx-font-size: 11.5px; -fx-background-color: transparent;");
                 }
             }
         });
@@ -2969,7 +3564,8 @@ public final class AppController {
                     setStyle("-fx-background-color: #1e2638;");
                 } else {
                     setText(item.displayName());
-                    setStyle("-fx-text-fill: #f1f5f9 !important; -fx-font-weight: 600 !important; -fx-font-size: 11.5px !important; -fx-padding: 7px 12px !important; -fx-background-color: #1e2638 !important;");
+                    setTextFill(Color.web("#f1f5f9"));
+                    setStyle("-fx-text-fill: #f1f5f9; -fx-font-weight: 600; -fx-font-size: 11.5px; -fx-padding: 7px 12px; -fx-background-color: #1e2638;");
                 }
             }
         });
@@ -3108,7 +3704,7 @@ public final class AppController {
 
     private void updatePlaygroundFont() {
         if (playgroundCodeArea != null) {
-            playgroundCodeArea.setStyle("-fx-font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', Menlo, Monaco, Consolas, monospace; -fx-font-size: " + playgroundFontSize + "px; -fx-line-spacing: 2.5px;");
+            playgroundCodeArea.setStyle("-fx-font-family: Consolas, Menlo, Monaco, 'Droid Sans Mono', 'Courier New', monospace; -fx-font-size: " + playgroundFontSize + "px; -fx-line-spacing: 5px; -fx-background-color: #1c2130;");
         }
     }
 
@@ -3176,6 +3772,10 @@ public final class AppController {
             examplePlaygroundSection.setManaged(!currentLessonOriginalCode.isBlank());
             examplePlaygroundSection.setVisible(!currentLessonOriginalCode.isBlank());
         }
+        if (lessonPlaygroundWrapper != null) {
+            lessonPlaygroundWrapper.setManaged(!currentLessonOriginalCode.isBlank());
+            lessonPlaygroundWrapper.setVisible(!currentLessonOriginalCode.isBlank());
+        }
         updatePlaygroundLanguageViews();
     }
 
@@ -3203,10 +3803,31 @@ public final class AppController {
         }
         if (playgroundStatusLabel != null) {
             playgroundStatusLabel.setText("Ready to execute");
-            playgroundStatusLabel.setStyle("-fx-text-fill: #10b981; -fx-font-weight: 700;");
         }
     }
 
-    private record NavigationItem(String label, Long topicId, Long lessonId) {
+    private record NavigationItem(String label, Long topicId, Long lessonId, String iconType) {
+        public NavigationItem(String label, Long topicId, Long lessonId) {
+            this(label, topicId, lessonId, lessonId != null ? "not_started" : "category");
+        }
+
+        public String cleanTitle() {
+            if (label == null) return "";
+            String clean = label;
+            if (clean.startsWith("✓  ") || clean.startsWith("▶  ") || clean.startsWith("○  ")) {
+                clean = clean.substring(3);
+            }
+            if (clean.endsWith(" (To Do)")) {
+                clean = clean.substring(0, clean.length() - 8);
+            }
+            return clean.trim();
+        }
+
+        public Node renderIcon(boolean isDark) {
+            if (lessonId != null) {
+                return LucideIcons.statusIcon(iconType, isDark);
+            }
+            return LucideIcons.categoryIcon(label, 15, isDark);
+        }
     }
 }

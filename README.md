@@ -20,6 +20,14 @@ This repository implements the project plan through **Phase 2**:
 
 Later topic families, certificates, streaks, and advanced analytics are intentionally deferred.
 
+## Presentation
+
+- **Video:** [https://youtu.be/UGvypdzDK4c](https://youtu.be/UGvypdzDK4c)
+- **Team:**
+  - Md. Azizul Hakim Khan Rafid — 230041141
+  - Tahsin Ahsan Sarker — 230041140
+  - Nuhiat Arefin — 230041147
+
 ## Requirements
 
 - Java 21

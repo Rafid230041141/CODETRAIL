@@ -55,6 +55,7 @@ public class CurriculumSeeder implements CommandLineRunner {
         backfillAiMlCurriculum();
         backfillDataScienceCurriculum();
         backfillGameDevCurriculum();
+        backfillDatabaseCurriculum();
         seedDemoUser("admin", "Administrator", "admin123", Role.ADMIN);
         seedDemoUser("student", "Demo Student", "student123", Role.STUDENT);
     }
@@ -184,6 +185,45 @@ public class CurriculumSeeder implements CommandLineRunner {
         upgradeTopicCurriculum("game-development", "game math", this::seedGameDev);
     }
 
+    private void backfillDatabaseCurriculum() {
+        upgradeTopicCurriculum("database", "sql fundamentals", this::seedDatabase);
+    }
+
+    private void seedDatabase(Topic topic) {
+        module(topic, "SQL Fundamentals & Relational Querying", new String[][]{
+                {"SQL Core", "SELECT Queries & Filtering", "Aggregate Functions & GROUP BY"},
+                {"SQL Intermediate", "ORDER BY, LIMIT & Subqueries", "ACID Transactions & Constraints"}
+        });
+        module(topic, "Database Design & Normalization", new String[][]{
+                {"ER Diagrams", "Entity-Relationship Modeling", "Primary & Foreign Keys"},
+                {"Normalization", "1NF, 2NF & 3NF Normal Forms", "BCNF & Denormalization Trade-offs"}
+        });
+        module(topic, "Advanced SQL: Joins, CTEs & Window Functions", new String[][]{
+                {"SQL Joins", "INNER, LEFT & RIGHT JOINs", "Self Joins & FULL OUTER JOINs"},
+                {"Advanced Queries", "Subqueries & CTEs (WITH clause)", "Window Functions: ROW_NUMBER, RANK, LAG"}
+        });
+        module(topic, "PostgreSQL Production Systems", new String[][]{
+                {"PostgreSQL Core", "psql CLI & Data Types", "Constraints, Indexes & Stored Procedures"},
+                {"PostgreSQL Advanced", "JSONB & Full-Text Search", "EXPLAIN ANALYZE & Query Planning"}
+        });
+        module(topic, "MongoDB & NoSQL Document Databases", new String[][]{
+                {"MongoDB Core", "Collections, Documents & BSON", "CRUD Operations & Aggregation Pipelines"},
+                {"MongoDB Advanced", "Indexing Strategies & Performance", "Mongoose ODM & Schema Patterns"}
+        });
+        module(topic, "Database Indexing & Query Optimization", new String[][]{
+                {"Index Internals", "B-tree vs Hash Indexes", "Composite & Covering Indexes"},
+                {"Query Tuning", "EXPLAIN Analysis & Query Plans", "N+1 Problem & Connection Pooling"}
+        });
+        module(topic, "Transactions, ACID & Concurrency Control", new String[][]{
+                {"Transactions Core", "ACID Properties in Depth", "Isolation Levels & Read Phenomena"},
+                {"Concurrency", "Deadlocks & Locking Strategies", "Two-Phase Commit & Distributed Tx"}
+        });
+        module(topic, "Redis, Caching & In-Memory Databases", new String[][]{
+                {"Redis Core", "Redis Data Structures & Commands", "TTL-Based Caching Strategies"},
+                {"Redis Advanced", "Pub/Sub Messaging & Streams", "Cache-Aside vs Write-Through Patterns"}
+        });
+    }
+
     private void seedDemoUser(String username, String displayName, String password, Role role) {
         if (!users.existsByUsernameIgnoreCase(username)) {
             users.save(new UserAccount(username, displayName, passwordEncoder.encode(password), role));
@@ -237,6 +277,13 @@ public class CurriculumSeeder implements CommandLineRunner {
                     "Create interactive 2D and 3D games using modern game engines and mechanics.", 7, true);
             seedGameDev(game);
             topics.save(game);
+        }
+
+        if (!topics.existsBySlugIgnoreCase("database")) {
+            Topic db = new Topic("database", "Database Engineering",
+                    "Master SQL, NoSQL, database design, indexing, transactions, and caching.", 8, true);
+            seedDatabase(db);
+            topics.save(db);
         }
     }
 

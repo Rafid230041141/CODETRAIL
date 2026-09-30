@@ -490,6 +490,8 @@ public class AppDevTopicsWindow {
 
         Label eyebrow = new Label("CURRICULUM");
         eyebrow.getStyleClass().add("section-eyebrow");
+        eyebrow.setGraphic(application.client.util.LucideIcons.icon("list-tree", 13, true));
+        eyebrow.setGraphicTextGap(6);
 
         HBox navRow = new HBox(6);
         Button allModulesBtn = new Button("All Modules (8)");
@@ -512,6 +514,8 @@ public class AppDevTopicsWindow {
 
         Label todoTitle = new Label("TO DO LIST");
         todoTitle.getStyleClass().add("continue-sidebar-header");
+        todoTitle.setGraphic(application.client.util.LucideIcons.icon("play", 11, true));
+        todoTitle.setGraphicTextGap(5);
 
         Region todoSpacer = new Region();
         HBox.setHgrow(todoSpacer, Priority.ALWAYS);
@@ -611,9 +615,7 @@ public class AppDevTopicsWindow {
             } catch (Throwable ignored) {}
         }
 
-        Label emojiLabel = new Label(topic.icon());
-        emojiLabel.setStyle("-fx-font-size: 18px;");
-        return emojiLabel;
+        return application.client.util.LucideIcons.categoryIcon(topic.title(), 18, true);
     }
 
     private static Node getTopicSmallIconNode(AppDevTopic topic) {
@@ -632,9 +634,7 @@ public class AppDevTopicsWindow {
             } catch (Throwable ignored) {}
         }
 
-        Label emojiLabel = new Label(topic.icon());
-        emojiLabel.setStyle("-fx-font-size: 13px;");
-        return emojiLabel;
+        return application.client.util.LucideIcons.categoryIcon(topic.title(), 14, true);
     }
 
     private static String getTopicImageResource(String moduleKey) {
@@ -715,6 +715,8 @@ public class AppDevTopicsWindow {
 
         Button startButton = new Button("Start learning");
         startButton.getStyleClass().add("start-learning-button");
+        startButton.setGraphic(application.client.util.LucideIcons.icon("play", 12, true));
+        startButton.setGraphicTextGap(6);
         HBox.setHgrow(startButton, Priority.ALWAYS);
         startButton.setMaxWidth(Double.MAX_VALUE);
         startButton.setOnAction(event -> {
@@ -742,13 +744,26 @@ public class AppDevTopicsWindow {
 
         card.getChildren().addAll(thumbnailPane, body);
 
-        // Smooth 14px rounded corners clipping the top thumbnail and bottom body
-        Rectangle clip = new Rectangle();
-        clip.setArcWidth(28.0);
-        clip.setArcHeight(28.0);
-        clip.widthProperty().bind(card.widthProperty());
-        clip.heightProperty().bind(card.heightProperty());
-        card.setClip(clip);
+        // Smooth 14px rounded corners clipping the top thumbnail only
+        Rectangle imgClip = new Rectangle();
+        imgClip.setArcWidth(28.0);
+        imgClip.setArcHeight(28.0);
+        imgClip.widthProperty().bind(thumbnailPane.widthProperty());
+        imgClip.heightProperty().bind(thumbnailPane.heightProperty().add(14.0));
+        thumbnailPane.setClip(imgClip);
+
+        card.hoverProperty().addListener((obs, wasHovered, isHovered) -> {
+            boolean isDark = stage.getScene() != null && stage.getScene().getRoot().getStyleClass().contains("dark-theme");
+            if (isHovered) {
+                if (isDark) {
+                    card.setStyle("-fx-border-color: #38bdf8; -fx-border-width: 1.5px; -fx-effect: dropshadow(gaussian, rgba(56, 189, 248, 0.65), 20, 0.25, 0, 4); -fx-background-color: #242e34;");
+                } else {
+                    card.setStyle("-fx-border-color: #0089fc; -fx-border-width: 1.5px; -fx-effect: dropshadow(gaussian, rgba(0, 137, 252, 0.28), 18, 0.15, 0, 4); -fx-background-color: #ffffff;");
+                }
+            } else {
+                card.setStyle("");
+            }
+        });
 
         // Clicking anywhere on card triggers start learning
         card.setOnMouseClicked(event -> {
@@ -813,6 +828,7 @@ public class AppDevTopicsWindow {
         return switch (moduleKey.toLowerCase(Locale.ROOT)) {
             case "reactnative", "mobileapi" -> ProgrammingLanguage.JAVASCRIPT;
             case "swift" -> ProgrammingLanguage.CPP;
+            case "sqlite" -> ProgrammingLanguage.SQL;
             default -> ProgrammingLanguage.JAVA;
         };
     }

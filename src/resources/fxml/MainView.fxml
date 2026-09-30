@@ -67,7 +67,7 @@
                                         <ImageView fx:id="loginThemeIcon" fitHeight="17.0" fitWidth="17.0"
                                                    preserveRatio="true">
                                             <image>
-                                                <Image url="@../images/icon-moon-dark.png"/>
+                                                <Image url="@../images/lucide/moon-dark.png"/>
                                             </image>
                                         </ImageView>
                                     </graphic>
@@ -217,14 +217,22 @@
                                         <ImageView fx:id="studentThemeIcon" fitHeight="17.0" fitWidth="17.0"
                                                    preserveRatio="true">
                                             <image>
-                                                <Image url="@../images/icon-moon-dark.png"/>
+                                                <Image url="@../images/lucide/moon-dark.png"/>
                                             </image>
                                         </ImageView>
                                     </graphic>
                                 </ToggleButton>
                                 <Button fx:id="studentLogoutButton" mnemonicParsing="false"
                                         onAction="#logout" text="Sign out"
-                                        styleClass="secondary-button"/>
+                                        styleClass="start-learning-button">
+                                    <graphic>
+                                        <ImageView fitHeight="15.0" fitWidth="15.0" preserveRatio="true">
+                                            <image>
+                                                <Image url="@../images/icon-sign-out.png"/>
+                                            </image>
+                                        </ImageView>
+                                    </graphic>
+                                </Button>
                             </children>
                             <padding>
                                 <Insets bottom="14.0" left="20.0" right="20.0" top="14.0"/>
@@ -234,7 +242,7 @@
                     <left>
                         <VBox prefWidth="310.0" spacing="10.0" styleClass="curriculum-sidebar">
                             <children>
-                                <Label text="CURRICULUM" styleClass="section-eyebrow"/>
+                                <Label fx:id="curriculumEyebrowLabel" text="CURRICULUM" styleClass="section-eyebrow"/>
                                 <HBox spacing="6.0">
                                     <children>
                                         <Button fx:id="sidebarDashboardBtn" maxWidth="1.7976931348623157E308" HBox.hgrow="ALWAYS"
@@ -249,7 +257,7 @@
                                     <children>
                                         <HBox alignment="CENTER_LEFT">
                                             <children>
-                                                <Label text="CONTINUE LEARNING" styleClass="continue-sidebar-header"/>
+                                                <Label fx:id="continueHeaderLabel" text="CONTINUE LEARNING" styleClass="continue-sidebar-header"/>
                                                 <Region HBox.hgrow="ALWAYS"/>
                                                 <Label fx:id="continueTrackLabel" text="Languages" styleClass="continue-course-title"/>
                                             </children>
@@ -351,9 +359,25 @@
                                                                   styleClass="completion-check"/>
                                                          <Region HBox.hgrow="ALWAYS"/>
                                                          <Button fx:id="lessonWatchVideoBtn" mnemonicParsing="false"
-                                                                 managed="false" visible="false"/>
+                                                                 managed="false" visible="false" text="Watch Video">
+                                                             <graphic>
+                                                                 <ImageView fitHeight="13.0" fitWidth="13.0" preserveRatio="true">
+                                                                     <image>
+                                                                         <Image url="@../images/icon-video-play-dark.png"/>
+                                                                     </image>
+                                                                 </ImageView>
+                                                             </graphic>
+                                                         </Button>
                                                          <Button fx:id="lessonCopyVideoBtn" mnemonicParsing="false"
-                                                                 managed="false" visible="false"/>
+                                                                 managed="false" visible="false" text="Copy Link">
+                                                             <graphic>
+                                                                 <ImageView fitHeight="13.0" fitWidth="13.0" preserveRatio="true">
+                                                                     <image>
+                                                                         <Image url="@../images/icon-video-copy.png"/>
+                                                                     </image>
+                                                                 </ImageView>
+                                                             </graphic>
+                                                         </Button>
                                                          <Button fx:id="quizButton" mnemonicParsing="false"
                                                                  onAction="#openQuiz" text="Take quiz"
                                                                  styleClass="primary-button"/>
@@ -364,14 +388,46 @@
                                                     <children>
                                                         <HBox alignment="CENTER_LEFT" spacing="10.0" styleClass="lesson-embedded-video-header">
                                                             <children>
-                                                                <Label text="🎥 Video Lecture" styleClass="lesson-video-header-tag" minWidth="-Infinity"/>
+                                                                <Label fx:id="lessonVideoTag" text="Video Lecture" styleClass="lesson-video-header-tag" minWidth="-Infinity">
+                                                                    <graphic>
+                                                                        <ImageView fx:id="lessonVideoTagIcon" fitHeight="13.0" fitWidth="13.0" preserveRatio="true">
+                                                                            <image>
+                                                                                <Image url="@../images/icon-video-lecture.png"/>
+                                                                            </image>
+                                                                        </ImageView>
+                                                                    </graphic>
+                                                                </Label>
                                                                 <Label fx:id="lessonVideoTitleLabel" text="Video Lecture" styleClass="lesson-video-title" wrapText="true" HBox.hgrow="ALWAYS"/>
-                                                                <Button fx:id="lessonVideoPlayBtn" minWidth="-Infinity" mnemonicParsing="false" onAction="#startLessonVideo" text="▶ Play Video" styleClass="lesson-video-action-play"/>
-                                                                <Button fx:id="lessonVideoStopBtn" minWidth="-Infinity" mnemonicParsing="false" onAction="#stopLessonVideo" text="■ Stop Video" managed="false" visible="false" styleClass="lesson-video-action-stop"/>
-                                                                <Button fx:id="lessonVideoRewindBtn" minWidth="-Infinity" mnemonicParsing="false" onAction="#seekLessonVideoBackward" text="⏪ -10s" managed="false" visible="false" styleClass="lesson-video-action-skip"/>
-                                                                <Button fx:id="lessonVideoForwardBtn" minWidth="-Infinity" mnemonicParsing="false" onAction="#seekLessonVideoForward" text="+10s ⏩" managed="false" visible="false" styleClass="lesson-video-action-skip"/>
-                                                                <Button fx:id="openCurrentLessonVideo" minWidth="-Infinity" mnemonicParsing="false" onAction="#openCurrentLessonVideo" text="Browser ↗" styleClass="lesson-video-action-browser"/>
-                                                                <Button fx:id="lessonVideoCopyLinkBtn" minWidth="-Infinity" mnemonicParsing="false" onAction="#copyCurrentLessonVideo" text="📋 Copy" styleClass="lesson-video-action-copy"/>
+                                                                <Button fx:id="lessonVideoPlayBtn" minWidth="-Infinity" mnemonicParsing="false" onAction="#startLessonVideo" text="Play Video" styleClass="lesson-video-action-play">
+                                                                    <graphic>
+                                                                        <ImageView fx:id="lessonVideoPlayBtnIcon" fitHeight="12.0" fitWidth="12.0" preserveRatio="true">
+                                                                            <image>
+                                                                                <Image url="@../images/icon-video-play-white.png"/>
+                                                                            </image>
+                                                                        </ImageView>
+                                                                    </graphic>
+                                                                </Button>
+                                                                <Button fx:id="lessonVideoStopBtn" minWidth="-Infinity" mnemonicParsing="false" onAction="#stopLessonVideo" text="Stop Video" managed="false" visible="false" styleClass="lesson-video-action-stop"/>
+                                                                <Button fx:id="lessonVideoRewindBtn" minWidth="-Infinity" mnemonicParsing="false" onAction="#seekLessonVideoBackward" text="-10s" managed="false" visible="false" styleClass="lesson-video-action-skip"/>
+                                                                <Button fx:id="lessonVideoForwardBtn" minWidth="-Infinity" mnemonicParsing="false" onAction="#seekLessonVideoForward" text="+10s" managed="false" visible="false" styleClass="lesson-video-action-skip"/>
+                                                                <Button fx:id="openCurrentLessonVideo" minWidth="-Infinity" mnemonicParsing="false" onAction="#openCurrentLessonVideo" text="Browser" styleClass="lesson-video-action-browser">
+                                                                    <graphic>
+                                                                        <ImageView fx:id="openCurrentLessonVideoIcon" fitHeight="13.0" fitWidth="13.0" preserveRatio="true">
+                                                                            <image>
+                                                                                <Image url="@../images/icon-video-browse.png"/>
+                                                                            </image>
+                                                                        </ImageView>
+                                                                    </graphic>
+                                                                </Button>
+                                                                <Button fx:id="lessonVideoCopyLinkBtn" minWidth="-Infinity" mnemonicParsing="false" onAction="#copyCurrentLessonVideo" text="Copy" styleClass="lesson-video-action-copy">
+                                                                    <graphic>
+                                                                        <ImageView fx:id="lessonVideoCopyLinkBtnIcon" fitHeight="13.0" fitWidth="13.0" preserveRatio="true">
+                                                                            <image>
+                                                                                <Image url="@../images/icon-video-copy.png"/>
+                                                                            </image>
+                                                                        </ImageView>
+                                                                    </graphic>
+                                                                </Button>
                                                             </children>
                                                         </HBox>
                                                         <StackPane fx:id="embeddedWebPlayerPane" alignment="CENTER" maxWidth="960.0" prefWidth="860.0" prefHeight="484.0" styleClass="embedded-player-frame">
@@ -401,24 +457,24 @@
                                                     </children>
                                                 </VBox>
                                                 <VBox fx:id="markdownContent" spacing="16.0"/>
-                                                <VBox spacing="12.0" styleClass="lesson-playground-wrapper">
+                                                <VBox fx:id="lessonPlaygroundWrapper" spacing="12.0" styleClass="lesson-playground-wrapper">
                                                     <children>
                                                         <Label text="Interactive Hands-On Example" styleClass="section-title"/>
                                                         <VBox fx:id="examplePlaygroundSection" spacing="14.0" styleClass="lesson-playground-card">
                                                             <children>
                                                                 <HBox alignment="CENTER_LEFT" spacing="10.0" styleClass="playground-header">
                                                                     <children>
-                                                                        <Label text="💻 Hands-On Code Playground" styleClass="playground-title"/>
+                                                                        <Label fx:id="playgroundTitleLabel" text="Hands-On Code Playground" styleClass="playground-title"/>
                                                                         <Label fx:id="playgroundLangBadge" text="Python 3" styleClass="playground-lang-badge"/>
                                                                         <Region HBox.hgrow="ALWAYS"/>
                                                                         <Button fx:id="playgroundRunBtn" mnemonicParsing="false" onAction="#runPlaygroundCode"
-                                                                                text="▶ Run Code" styleClass="playground-run-btn"/>
+                                                                                text="Run Code" styleClass="playground-run-btn"/>
                                                                         <Button fx:id="playgroundResetBtn" mnemonicParsing="false" onAction="#resetPlaygroundCode"
-                                                                                text="↺ Reset" styleClass="playground-tool-btn"/>
+                                                                                text="Reset" styleClass="playground-tool-btn"/>
                                                                         <Button fx:id="playgroundCopyBtn" mnemonicParsing="false" onAction="#copyPlaygroundCode"
-                                                                                text="📋 Copy" styleClass="playground-tool-btn"/>
+                                                                                text="Copy" styleClass="playground-tool-btn"/>
                                                                         <Button fx:id="playgroundArenaBtn" mnemonicParsing="false" onAction="#openPlaygroundInArena"
-                                                                                text="⚡ Open in Full Arena ↗" styleClass="playground-arena-btn"/>
+                                                                                text="Open in Full Arena ↗" styleClass="playground-arena-btn"/>
                                                                     </children>
                                                                     <padding>
                                                                         <Insets bottom="12.0" left="16.0" right="16.0" top="12.0"/>
@@ -484,17 +540,33 @@
                                                                          </ImageView>
                                                                      </children>
                                                                  </StackPane>
-                                                                 <Button fx:id="attachAvatarBtn" mnemonicParsing="false" onAction="#attachStudentAvatar"
-                                                                         text="Attach Photo" styleClass="secondary-button"
-                                                                         style="-fx-font-size: 11px; -fx-padding: 3px 8px; -fx-cursor: hand;">
-                                                                     <graphic>
-                                                                         <ImageView fx:id="attachAvatarBtnIcon" fitHeight="13.0" fitWidth="13.0" preserveRatio="true">
-                                                                             <image>
-                                                                                 <Image url="@../images/icon-photo.png"/>
-                                                                             </image>
-                                                                         </ImageView>
-                                                                     </graphic>
-                                                                 </Button>
+                                                                  <HBox alignment="CENTER" spacing="6.0">
+                                                                      <children>
+                                                                          <Button fx:id="attachAvatarBtn" mnemonicParsing="false" onAction="#attachStudentAvatar"
+                                                                                  text="Attach Photo" styleClass="secondary-button"
+                                                                                  style="-fx-font-size: 11px; -fx-padding: 3px 8px; -fx-cursor: hand;">
+                                                                              <graphic>
+                                                                                  <ImageView fx:id="attachAvatarBtnIcon" fitHeight="13.0" fitWidth="13.0" preserveRatio="true">
+                                                                                      <image>
+                                                                                          <Image url="@../images/icon-photo.png"/>
+                                                                                      </image>
+                                                                                  </ImageView>
+                                                                              </graphic>
+                                                                          </Button>
+                                                                          <Button fx:id="deleteAvatarBtn" mnemonicParsing="false" onAction="#deleteStudentAvatar"
+                                                                                  text="Delete" styleClass="secondary-button"
+                                                                                  style="-fx-font-size: 11px; -fx-padding: 3px 8px; -fx-cursor: hand; -fx-text-fill: #ef4444; -fx-border-color: #fca5a5;"
+                                                                                  visible="false" managed="false">
+                                                                              <graphic>
+                                                                                  <ImageView fx:id="deleteAvatarBtnIcon" fitHeight="13.0" fitWidth="13.0" preserveRatio="true">
+                                                                                      <image>
+                                                                                          <Image url="@../images/icon-trash.png"/>
+                                                                                      </image>
+                                                                                  </ImageView>
+                                                                              </graphic>
+                                                                          </Button>
+                                                                      </children>
+                                                                  </HBox>
                                                              </children>
                                                          </VBox>
                                                         <VBox spacing="4.0" HBox.hgrow="ALWAYS">
@@ -520,7 +592,7 @@
                                                     <children>
                                                         <VBox prefWidth="220.0" spacing="6.0" styleClass="profile-stat-box">
                                                             <children>
-                                                                <Label text="LESSONS COMPLETED" styleClass="stat-box-title"/>
+                                                                <Label fx:id="profileStatCompletedTitle" text="LESSONS COMPLETED" styleClass="stat-box-title"/>
                                                                 <Label fx:id="profileCompletedLessonsLabel" text="0 / 0" styleClass="stat-box-value"/>
                                                                 <Label text="Total progress across all modules" styleClass="stat-box-hint"/>
                                                             </children>
@@ -530,7 +602,7 @@
                                                         </VBox>
                                                         <VBox prefWidth="220.0" spacing="6.0" styleClass="profile-stat-box">
                                                             <children>
-                                                                <Label text="COMPLETION RATE" styleClass="stat-box-title"/>
+                                                                <Label fx:id="profileStatProgressTitle" text="COMPLETION RATE" styleClass="stat-box-title"/>
                                                                 <Label fx:id="profileProgressPercentLabel" text="0%" styleClass="stat-box-value"/>
                                                                 <ProgressBar fx:id="profileProgressBar" maxWidth="1.7976931348623157E308" progress="0.0" styleClass="profile-mini-progress"/>
                                                             </children>
@@ -540,7 +612,7 @@
                                                         </VBox>
                                                         <VBox prefWidth="220.0" spacing="6.0" styleClass="profile-stat-box">
                                                             <children>
-                                                                <Label text="QUIZ ATTEMPTS" styleClass="stat-box-title"/>
+                                                                <Label fx:id="profileStatQuizTitle" text="QUIZ ATTEMPTS" styleClass="stat-box-title"/>
                                                                 <Label fx:id="profileQuizAttemptsLabel" text="0" styleClass="stat-box-value"/>
                                                                 <Label text="Knowledge check assessments" styleClass="stat-box-hint"/>
                                                             </children>
@@ -550,7 +622,7 @@
                                                         </VBox>
                                                         <VBox prefWidth="220.0" spacing="6.0" styleClass="profile-stat-box">
                                                             <children>
-                                                                <Label text="ACTIVE COURSES" styleClass="stat-box-title"/>
+                                                                <Label fx:id="profileStatCoursesTitle" text="ACTIVE COURSES" styleClass="stat-box-title"/>
                                                                 <Label fx:id="profileCoursesCountLabel" text="7" styleClass="stat-box-value"/>
                                                                 <Label text="Enrolled curriculum tracks" styleClass="stat-box-hint"/>
                                                             </children>
@@ -772,14 +844,22 @@
                                         <ImageView fx:id="adminThemeIcon" fitHeight="17.0" fitWidth="17.0"
                                                    preserveRatio="true">
                                             <image>
-                                                <Image url="@../images/icon-moon-dark.png"/>
+                                                <Image url="@../images/lucide/moon-dark.png"/>
                                             </image>
                                         </ImageView>
                                     </graphic>
                                 </ToggleButton>
                                 <Button fx:id="adminLogoutButton" mnemonicParsing="false"
                                         onAction="#logout" text="Sign out"
-                                        styleClass="secondary-button"/>
+                                        styleClass="start-learning-button">
+                                    <graphic>
+                                        <ImageView fitHeight="15.0" fitWidth="15.0" preserveRatio="true">
+                                            <image>
+                                                <Image url="@../images/icon-sign-out.png"/>
+                                            </image>
+                                        </ImageView>
+                                    </graphic>
+                                </Button>
                             </children>
                             <padding>
                                 <Insets bottom="14.0" left="20.0" right="20.0" top="14.0"/>

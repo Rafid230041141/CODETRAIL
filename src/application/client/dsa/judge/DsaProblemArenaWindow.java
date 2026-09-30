@@ -21,6 +21,19 @@ import javafx.stage.Stage;
 import java.util.*;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
+import application.client.learning.CourseCategory;
+import application.client.learning.CourseLearningOrchestrator;
+import application.client.learning.DataScienceNotebookBlock;
+import application.client.learning.DatasetViewerBlock;
+import application.client.learning.FormulaBlock;
+import application.client.learning.GamePreviewBlock;
+import application.client.learning.InteractiveExperimentBlock;
+import application.client.learning.LearningBlock;
+import application.client.learning.LiveWebPreviewBlock;
+import application.client.learning.MobilePreviewBlock;
+import application.client.learning.ModelEvaluationBlock;
+import application.client.learning.ObjectiveBlock;
+import application.client.learning.UnderstandingCheckBlock;
 
 public class DsaProblemArenaWindow {
 
@@ -47,6 +60,7 @@ public class DsaProblemArenaWindow {
     private Label timeLimitLabel;
     private Label memoryLimitLabel;
     private VBox problemContentBox;
+    private LiveWebPreviewBlock activeArenaWebPreview = null;
 
     // Editor controls
     private ComboBox<ProgrammingLanguage> languageComboBox;
@@ -130,7 +144,16 @@ public class DsaProblemArenaWindow {
             "unreal",
             "game_physics",
             "audio_vfx",
-            "game_publish"
+            "game_publish",
+            // Programming Languages
+            "python",
+            "java",
+            "cpp",
+            "c",
+            "typescript",
+            "rust",
+            "golang",
+            "sql"
     );
 
     public static ProgrammingLanguage getDefaultLanguageForTopic(String topicKey) {
@@ -142,19 +165,24 @@ public class DsaProblemArenaWindow {
         }
 
         return switch (key) {
-            // Web Development (JavaScript)
-            case "html5", "css3", "javascript", "react", "node", "database", "auth", "deploy" -> ProgrammingLanguage.JAVASCRIPT;
+            // Web Development
+            case "html5" -> ProgrammingLanguage.HTML;
+            case "css3" -> ProgrammingLanguage.CSS;
+            case "database" -> ProgrammingLanguage.SQL;
+            case "javascript", "react", "node", "auth", "deploy" -> ProgrammingLanguage.JAVASCRIPT;
 
             // AI / ML (Python)
             case "ml_foundations", "math_ai", "scikit", "deep_learning", "vision", "nlp", "genai", "mlops" -> ProgrammingLanguage.PYTHON;
 
-            // Data Science (Python)
-            case "numpy", "pandas", "eda", "statistics", "feature_eng", "bigdata", "sql_analytics", "bi_dashboards" -> ProgrammingLanguage.PYTHON;
+            // Data Science (Python & SQL)
+            case "sql_analytics" -> ProgrammingLanguage.SQL;
+            case "numpy", "pandas", "eda", "statistics", "feature_eng", "bigdata", "bi_dashboards" -> ProgrammingLanguage.PYTHON;
 
             // App Development
             case "reactnative", "mobileapi" -> ProgrammingLanguage.JAVASCRIPT;
             case "swift" -> ProgrammingLanguage.CPP;
-            case "flutter", "kotlin", "statemgmt", "sqlite", "publish" -> ProgrammingLanguage.JAVA;
+            case "sqlite" -> ProgrammingLanguage.SQL;
+            case "flutter", "kotlin", "statemgmt", "publish" -> ProgrammingLanguage.JAVA;
 
             // Game Development
             case "pygame" -> ProgrammingLanguage.PYTHON;
@@ -166,11 +194,49 @@ public class DsaProblemArenaWindow {
             case "java" -> ProgrammingLanguage.JAVA;
             case "cpp" -> ProgrammingLanguage.CPP;
             case "c" -> ProgrammingLanguage.C;
+            case "typescript" -> ProgrammingLanguage.JAVASCRIPT;
+            case "rust", "golang" -> ProgrammingLanguage.CPP;
+            case "sql" -> ProgrammingLanguage.SQL;
             case "csharp" -> ProgrammingLanguage.CSHARP;
 
             // DSA and default
             default -> ProgrammingLanguage.CPP;
         };
+    }
+
+    public static ProgrammingLanguage getDefaultLanguageForExercise(DsaProblem problem, String topicKey) {
+        if (problem != null) {
+            String pid = problem.id() != null ? problem.id().toUpperCase(Locale.ROOT) : "";
+            String title = problem.title() != null ? problem.title().toLowerCase(Locale.ROOT) : "";
+            String stmt = problem.statement() != null ? problem.statement().toLowerCase(Locale.ROOT) : "";
+            String pTopic = problem.topicKey() != null ? problem.topicKey().toLowerCase(Locale.ROOT) : "";
+
+            if (pid.startsWith("WH-") || pTopic.equals("html5") || title.contains("html") || stmt.contains("html5") || stmt.contains("semantic html")) {
+                return ProgrammingLanguage.HTML;
+            }
+            if (pid.startsWith("WC-") || pTopic.equals("css3") || title.contains("css") || stmt.contains("flexbox") || stmt.contains("css grid") || stmt.contains("stylesheet")) {
+                return ProgrammingLanguage.CSS;
+            }
+            if (pid.startsWith("SA-") || pid.startsWith("SQL-") || pid.equals("WDB-101") || pid.equals("WDB-103") || pid.equals("WDB-105") || pTopic.equals("sql_analytics") || pTopic.equals("sql") || title.contains("sql") || stmt.contains("sql") || title.contains("relational schema") || title.contains("window functions") || title.contains("common table expressions")) {
+                return ProgrammingLanguage.SQL;
+            }
+            if (pid.startsWith("PY-") || pTopic.equals("python")) {
+                return ProgrammingLanguage.PYTHON;
+            }
+            if (pid.startsWith("JAV-") || pTopic.equals("java")) {
+                return ProgrammingLanguage.JAVA;
+            }
+            if (pid.startsWith("CPP-") || pTopic.equals("cpp") || pid.startsWith("RS-") || pTopic.equals("rust") || pid.startsWith("GO-") || pTopic.equals("golang")) {
+                return ProgrammingLanguage.CPP;
+            }
+            if (pid.startsWith("C-") || pTopic.equals("c")) {
+                return ProgrammingLanguage.C;
+            }
+            if (pid.startsWith("TS-") || pTopic.equals("typescript")) {
+                return ProgrammingLanguage.JAVASCRIPT;
+            }
+        }
+        return getDefaultLanguageForTopic(topicKey);
     }
 
     public static boolean isAlgorithmicTopic(String topicKey) {
@@ -186,7 +252,8 @@ public class DsaProblemArenaWindow {
                  "flutter", "reactnative", "kotlin", "swift", "statemgmt", "mobileapi", "sqlite", "publish",
                  "ml_foundations", "math_ai", "scikit", "deep_learning", "vision", "nlp", "genai", "mlops",
                  "numpy", "pandas", "eda", "statistics", "feature_eng", "bigdata", "sql_analytics", "bi_dashboards",
-                 "math_games", "pygame", "unity_basics", "unity_3d", "unreal", "game_physics", "audio_vfx", "game_publish" -> false;
+                 "math_games", "pygame", "unity_basics", "unity_3d", "unreal", "game_physics", "audio_vfx", "game_publish",
+                 "python", "java", "cpp", "c", "typescript", "rust", "golang", "sql" -> false;
             default -> true;
         };
     }
@@ -197,8 +264,8 @@ public class DsaProblemArenaWindow {
         String canonical = DsaProblemRepository.getCanonicalTopicKey(k);
         if (canonical == null) canonical = k;
 
-        // Web Development
-        if (canonical.equals("html5")) {
+        // Web Development & Languages
+        if (lang == ProgrammingLanguage.HTML || canonical.equals("html5")) {
             return """
                     <!DOCTYPE html>
                     <html lang="en">
@@ -225,26 +292,14 @@ public class DsaProblemArenaWindow {
                     </html>
                     """;
         }
-        if (canonical.equals("css3")) {
-            return """
-                    /* Modern CSS3 Exercise */
-                    :root {
-                        --primary-color: #0284c7;
-                        --bg-color: #f8fafc;
-                        --text-color: #0f172a;
-                    }
-
-                    * {
-                        box-sizing: border-box;
-                        margin: 0;
-                        padding: 0;
-                    }
-
-                    /* Write your styles, flexbox, or grid rules below */
-                    """;
+        if (lang == ProgrammingLanguage.CSS || canonical.equals("css3")) {
+            return "";
+        }
+        if (lang == ProgrammingLanguage.SQL || canonical.equals("database") || canonical.equals("sql_analytics") || canonical.equals("sqlite")) {
+            return "";
         }
         if (canonical.equals("javascript") || canonical.equals("react") || canonical.equals("node") ||
-            canonical.equals("database") || canonical.equals("auth") || canonical.equals("deploy")) {
+            canonical.equals("auth") || canonical.equals("deploy")) {
             if (canonical.equals("react")) {
                 return """
                         import React, { useState, useEffect, useReducer } from 'react';
@@ -451,21 +506,34 @@ public class DsaProblemArenaWindow {
 
     public static void show(javafx.stage.Window owner, boolean isDark, String initialTopicKey, String initialProblemId, ProgrammingLanguage initialLanguage) {
         if (arenaStage != null) {
-            arenaStage.toFront();
-            arenaStage.requestFocus();
-            return;
+            try {
+                arenaStage.close();
+            } catch (Throwable ignored) {}
+            arenaStage = null;
         }
 
-        Stage stage = new Stage();
-        arenaStage = stage;
-        stage.initOwner(owner);
-        stage.setTitle("CodeTrail DSA Arena & Online Judge");
+        try {
+            Stage stage = new Stage();
+            arenaStage = stage;
+            if (owner != null) {
+                try {
+                    stage.initOwner(owner);
+                } catch (Throwable ignored) {}
+            }
+            stage.setTitle("CodeTrail DSA Arena & Online Judge");
 
-        DsaProblemArenaWindow arena = new DsaProblemArenaWindow(stage, isDark, initialTopicKey, initialProblemId, initialLanguage);
-        arena.initUi();
+            DsaProblemArenaWindow arena = new DsaProblemArenaWindow(stage, isDark, initialTopicKey, initialProblemId, initialLanguage);
+            arena.initUi();
 
-        stage.setOnHidden(e -> arenaStage = null);
-        stage.show();
+            stage.setOnHidden(e -> arenaStage = null);
+            stage.show();
+            stage.toFront();
+            stage.requestFocus();
+        } catch (Throwable t) {
+            System.err.println("[DsaProblemArenaWindow] Error opening arena window: " + t.getMessage());
+            t.printStackTrace();
+            arenaStage = null;
+        }
     }
 
     private final String initialTopicKey;
@@ -481,10 +549,17 @@ public class DsaProblemArenaWindow {
         this.initialProblemId = initialProblemId;
         this.initialLanguage = initialLanguage;
 
-        if (initialLanguage != null) {
+        ProgrammingLanguage defaultForTopic = initialTopicKey != null ? getDefaultLanguageForTopic(initialTopicKey) : null;
+        if (defaultForTopic == ProgrammingLanguage.HTML || defaultForTopic == ProgrammingLanguage.CSS || defaultForTopic == ProgrammingLanguage.SQL) {
+            if (initialLanguage == null || initialLanguage == ProgrammingLanguage.JAVASCRIPT || initialLanguage == ProgrammingLanguage.CPP) {
+                this.currentLanguage = defaultForTopic;
+            } else {
+                this.currentLanguage = initialLanguage;
+            }
+        } else if (initialLanguage != null) {
             this.currentLanguage = initialLanguage;
-        } else if (initialTopicKey != null) {
-            this.currentLanguage = getDefaultLanguageForTopic(initialTopicKey);
+        } else if (defaultForTopic != null) {
+            this.currentLanguage = defaultForTopic;
         } else {
             this.currentLanguage = ProgrammingLanguage.CPP;
         }
@@ -659,7 +734,15 @@ public class DsaProblemArenaWindow {
                 "53. Unreal Engine 5 & Blueprints (5 Exercises)",
                 "54. Game Physics & Collisions (5 Exercises)",
                 "55. Game Audio, Shaders & VFX (5 Exercises)",
-                "56. Game Publishing & Optimization (5 Exercises)"
+                "56. Game Publishing & Optimization (5 Exercises)",
+                "57. Python 3 Scripting (3 Exercises)",
+                "58. Java OOP & Concurrency (3 Exercises)",
+                "59. C++ Systems & STL (3 Exercises)",
+                "60. C Memory & Pointers (3 Exercises)",
+                "61. TypeScript & ES6+ (3 Exercises)",
+                "62. Rust Memory Safety (3 Exercises)",
+                "63. Go Cloud Microservices (3 Exercises)",
+                "64. SQL Relational Modeling (3 Exercises)"
         );
         topicComboBox.getSelectionModel().select(0);
         topicComboBox.getStyleClass().add("arena-topic-combobox");
@@ -671,7 +754,8 @@ public class DsaProblemArenaWindow {
                     setText("");
                 } else {
                     setText(item);
-                    setStyle("-fx-text-fill: " + (isDark ? "#ffffff" : "#0f172a") + " !important; -fx-font-weight: 700 !important; -fx-font-size: 12.5px !important; -fx-background-color: transparent !important;");
+                    setTextFill(isDark ? Color.WHITE : Color.web("#0f172a"));
+                    setStyle("-fx-text-fill: " + (isDark ? "#ffffff" : "#0f172a") + "; -fx-font-weight: 700; -fx-font-size: 12.5px; -fx-background-color: transparent;");
                 }
             }
         });
@@ -684,17 +768,18 @@ public class DsaProblemArenaWindow {
                     setStyle("-fx-background-color: " + (isDark ? "#1e2638" : "#ffffff") + ";");
                 } else {
                     setText(item);
-                    setStyle("-fx-text-fill: " + (isDark ? "#f1f5f9" : "#0f172a") + " !important; -fx-font-weight: 600 !important; -fx-font-size: 12px !important; -fx-padding: 7px 12px !important; -fx-background-color: " + (isDark ? "#1e2638" : "#ffffff") + " !important;");
+                    setTextFill(isDark ? Color.web("#f1f5f9") : Color.web("#0f172a"));
+                    setStyle("-fx-text-fill: " + (isDark ? "#f1f5f9" : "#0f172a") + "; -fx-font-weight: 600; -fx-font-size: 12px; -fx-padding: 7px 12px; -fx-background-color: " + (isDark ? "#1e2638" : "#ffffff") + ";");
                 }
             }
         });
         topicComboBox.setStyle(
-                "-fx-background-color: " + (isDark ? "#1a242c" : "#f8fafc") + ";" +
-                "-fx-border-color: " + (isDark ? "#3b4d5a" : "#cbd5e1") + ";" +
+                "-fx-background-color: " + (isDark ? "#1e293b" : "#f8fafc") + ";" +
+                "-fx-border-color: " + (isDark ? "#475569" : "#cbd5e1") + ";" +
                 "-fx-border-width: 1.5px;" +
                 "-fx-border-radius: 8px; -fx-background-radius: 8px;" +
                 "-fx-font-size: 12.5px; -fx-font-weight: 700;" +
-                "-fx-pref-width: 290px; -fx-cursor: hand;" +
+                "-fx-pref-width: 320px; -fx-cursor: hand;" +
                 "-fx-text-fill: " + (isDark ? "#ffffff" : "#0f172a") + ";"
         );
         topicComboBox.setOnAction(e -> {
@@ -877,7 +962,8 @@ public class DsaProblemArenaWindow {
                     setText("");
                 } else {
                     setText(item.displayName());
-                    setStyle("-fx-text-fill: #ffffff !important; -fx-font-weight: 700 !important; -fx-font-size: 11.5px !important; -fx-background-color: transparent !important;");
+                    setTextFill(Color.WHITE);
+                    setStyle("-fx-text-fill: #ffffff; -fx-font-weight: 700; -fx-font-size: 11.5px; -fx-background-color: transparent;");
                 }
             }
         });
@@ -890,7 +976,8 @@ public class DsaProblemArenaWindow {
                     setStyle("-fx-background-color: #1e2638;");
                 } else {
                     setText(item.displayName());
-                    setStyle("-fx-text-fill: #f1f5f9 !important; -fx-font-weight: 600 !important; -fx-font-size: 11.5px !important; -fx-padding: 7px 12px !important; -fx-background-color: #1e2638 !important;");
+                    setTextFill(Color.web("#f1f5f9"));
+                    setStyle("-fx-text-fill: #f1f5f9; -fx-font-weight: 600; -fx-font-size: 11.5px; -fx-padding: 7px 12px; -fx-background-color: #1e2638;");
                 }
             }
         });
@@ -934,11 +1021,11 @@ public class DsaProblemArenaWindow {
         resetBtn.setOnMouseExited(e -> resetBtn.setStyle("-fx-background-color: #232a3b; -fx-border-color: #30394f; -fx-border-radius: 4px; -fx-background-radius: 4px; -fx-font-size: 10.5px; -fx-font-weight: 600; -fx-text-fill: #d5deeb; -fx-cursor: hand; -fx-padding: 3px 8px;"));
         resetBtn.setOnAction(e -> {
             if (currentLanguage != null) {
-                if (isAlgorithmicTopic(currentTopicKey)) {
-                    codeEditorArea.replaceText(currentLanguage.starterTemplate());
-                } else {
-                    codeEditorArea.replaceText(getPracticalStarterTemplate(currentTopicKey, currentLanguage));
-                }
+                String resetCode = isAlgorithmicTopic(currentTopicKey)
+                        ? currentLanguage.starterTemplate()
+                        : getPracticalStarterTemplate(currentTopicKey, currentLanguage);
+                codeEditorArea.replaceText(resetCode);
+                CodeSyntaxHighlighter.applyHighlightingAsync(codeEditorArea, resetCode, currentLanguage);
             }
         });
 
@@ -972,7 +1059,7 @@ public class DsaProblemArenaWindow {
                 "-fx-border-color: #212738; -fx-border-width: 0 0 1px 0;"
         );
 
-        Label bcFolder = new Label("📁 src");
+        Label bcFolder = new Label("src");
         bcFolder.setStyle("-fx-font-size: 11px; -fx-text-fill: #707e94; -fx-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;");
         Label bcSep1 = new Label("›");
         bcSep1.setStyle("-fx-font-size: 11px; -fx-text-fill: #484f5d;");
@@ -994,6 +1081,13 @@ public class DsaProblemArenaWindow {
 
         codeEditorArea = new CodeArea();
         codeEditorArea.getStyleClass().add("code-editor-area");
+        var cssRes = getClass().getResource("/resources/css/application.css");
+        if (cssRes != null) {
+            String cssUrl = cssRes.toExternalForm();
+            if (!codeEditorArea.getStylesheets().contains(cssUrl)) {
+                codeEditorArea.getStylesheets().add(cssUrl);
+            }
+        }
         codeEditorArea.setParagraphGraphicFactory(LineNumberFactory.get(codeEditorArea));
         HBox.setHgrow(codeEditorArea, Priority.ALWAYS);
         VBox.setVgrow(codeEditorArea, Priority.ALWAYS);
@@ -1077,7 +1171,7 @@ public class DsaProblemArenaWindow {
         });
 
         // 5. Action Buttons (Play / Run Code, Submit Solution)
-        runBtn = new Button("▶ Run");
+        runBtn = new Button("Run");
         runBtn.setStyle(
                 "-fx-background-color: #10b981; -fx-text-fill: #ffffff;" +
                 "-fx-font-weight: 800; -fx-font-size: 13px;" +
@@ -1185,8 +1279,9 @@ public class DsaProblemArenaWindow {
     private void updateEditorFont() {
         if (codeEditorArea != null) {
             codeEditorArea.setStyle(
-                    "-fx-font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', Menlo, Monaco, Consolas, monospace;" +
+                    "-fx-font-family: Consolas, Menlo, Monaco, 'Droid Sans Mono', 'Courier New', monospace;" +
                     "-fx-font-size: " + editorFontSize + "px;" +
+                    "-fx-line-spacing: 5px;" +
                     "-fx-background-color: #1c2130;"
             );
         }
@@ -1207,13 +1302,17 @@ public class DsaProblemArenaWindow {
         String topicKey = CANONICAL_TOPIC_KEYS.get(topicIdx);
         this.currentTopicKey = topicKey;
 
-        if (!initialLoad || initialLanguage == null) {
-            ProgrammingLanguage defaultLang = getDefaultLanguageForTopic(topicKey);
-            if (defaultLang != null && defaultLang != currentLanguage) {
-                currentLanguage = defaultLang;
-                if (languageComboBox != null) {
-                    languageComboBox.getSelectionModel().select(currentLanguage);
-                }
+        ProgrammingLanguage defaultLang = getDefaultLanguageForTopic(topicKey);
+        boolean shouldSwitch = !initialLoad || initialLanguage == null;
+        if (!shouldSwitch && (defaultLang == ProgrammingLanguage.HTML || defaultLang == ProgrammingLanguage.CSS || defaultLang == ProgrammingLanguage.SQL)) {
+            if (initialLanguage == ProgrammingLanguage.JAVASCRIPT || initialLanguage == ProgrammingLanguage.CPP) {
+                shouldSwitch = true;
+            }
+        }
+        if (shouldSwitch && defaultLang != null && defaultLang != currentLanguage) {
+            currentLanguage = defaultLang;
+            if (languageComboBox != null) {
+                languageComboBox.getSelectionModel().select(currentLanguage);
             }
         }
 
@@ -1309,6 +1408,16 @@ public class DsaProblemArenaWindow {
     private void selectProblem(DsaProblem problem) {
         this.currentProblem = problem;
 
+        ProgrammingLanguage targetLang = getDefaultLanguageForExercise(problem, currentTopicKey);
+        if (targetLang == ProgrammingLanguage.HTML || targetLang == ProgrammingLanguage.CSS || targetLang == ProgrammingLanguage.SQL) {
+            if (currentLanguage != targetLang) {
+                currentLanguage = targetLang;
+                if (languageComboBox != null) {
+                    languageComboBox.getSelectionModel().select(currentLanguage);
+                }
+            }
+        }
+
         boolean isAlgo = isAlgorithmicTopic(currentTopicKey);
 
         // Update Title & Badge
@@ -1342,8 +1451,9 @@ public class DsaProblemArenaWindow {
                 arenaTag.setText("DSA COMPETITIVE ARENA");
                 arenaTag.setStyle("-fx-font-size: 11px; -fx-font-weight: 800; -fx-background-color: " + (isDark ? "#163640" : "#e0f2fe") + "; -fx-text-fill: #0089fc; -fx-padding: 4 10; -fx-background-radius: 6;");
             } else {
-                arenaTag.setText("EXERCISE COMPILER");
-                arenaTag.setStyle("-fx-font-size: 11px; -fx-font-weight: 800; -fx-background-color: " + (isDark ? "#1e293b" : "#f1f5f9") + "; -fx-text-fill: " + (isDark ? "#38bdf8" : "#0284c7") + "; -fx-padding: 4 10; -fx-background-radius: 6; -fx-border-color: " + (isDark ? "#334155" : "#cbd5e1") + "; -fx-border-radius: 6;");
+                CourseCategory cat = CourseCategory.fromTopicKey(currentTopicKey);
+                arenaTag.setText(cat.displayName().toUpperCase());
+                arenaTag.setStyle("-fx-font-size: 11px; -fx-font-weight: 800; -fx-background-color: " + (isDark ? "#1e293b" : "#f1f5f9") + "; -fx-text-fill: " + cat.accentColor() + "; -fx-padding: 4 10; -fx-background-radius: 6; -fx-border-color: " + (isDark ? "#334155" : "#cbd5e1") + "; -fx-border-radius: 6;");
             }
         }
 
@@ -1415,70 +1525,135 @@ public class DsaProblemArenaWindow {
                 problemContentBox.getChildren().add(sampleBox);
             }
         } else {
-            // Practical statement problem format - no competitive metadata
-            Label stmtHeader = new Label("PROBLEM STATEMENT");
-            stmtHeader.setStyle("-fx-font-size: 12px; -fx-font-weight: 800; -fx-text-fill: #0089fc; -fx-padding: 4 0 0 0;");
+            CourseCategory cat = CourseCategory.fromTopicKey(currentTopicKey);
+            List<LearningBlock> blocks = CourseLearningOrchestrator.buildLessonBlocks(cat, currentTopicKey, problem.title(), "");
+            activeArenaWebPreview = null;
 
-            Label stmtText = new Label(problem.statement());
-            stmtText.setStyle("-fx-font-size: 13.5px; -fx-line-spacing: 4; -fx-text-fill: " + (isDark ? "#cbd5e1" : "#334155") + ";");
-            stmtText.setWrapText(true);
-
-            problemContentBox.getChildren().addAll(stmtHeader, stmtText);
-
-            if (problem.inputFormat() != null && !problem.inputFormat().isBlank()) {
-                Label reqHeader = new Label("REQUIREMENTS & SPECIFICATIONS");
-                reqHeader.setStyle("-fx-font-size: 12px; -fx-font-weight: 800; -fx-text-fill: #0089fc; -fx-padding: 6 0 0 0;");
-
-                Label reqText = new Label(problem.inputFormat());
-                reqText.setStyle("-fx-font-size: 13px; -fx-line-spacing: 3; -fx-text-fill: " + (isDark ? "#94a3b8" : "#475569") + ";");
-                reqText.setWrapText(true);
-
-                problemContentBox.getChildren().addAll(reqHeader, reqText);
-            }
-
-            if (problem.outputFormat() != null && !problem.outputFormat().isBlank()) {
-                Label delivHeader = new Label("EXPECTED DELIVERABLES");
-                delivHeader.setStyle("-fx-font-size: 12px; -fx-font-weight: 800; -fx-text-fill: #0089fc; -fx-padding: 6 0 0 0;");
-
-                Label delivText = new Label(problem.outputFormat());
-                delivText.setStyle("-fx-font-size: 13px; -fx-line-spacing: 3; -fx-text-fill: " + (isDark ? "#94a3b8" : "#475569") + ";");
-                delivText.setWrapText(true);
-
-                problemContentBox.getChildren().addAll(delivHeader, delivText);
-            }
-
-            if (problem.constraints() != null && !problem.constraints().isBlank()) {
-                Label constHeader = new Label("CONSTRAINTS & TECHNICAL SPEC");
-                constHeader.setStyle("-fx-font-size: 12px; -fx-font-weight: 800; -fx-text-fill: #0089fc; -fx-padding: 6 0 0 0;");
-
-                Label constText = new Label(problem.constraints());
-                constText.setStyle("-fx-font-size: 12.5px; -fx-text-fill: " + (isDark ? "#38bdf8" : "#0284c7") + "; -fx-background-color: " + (isDark ? "#161e24" : "#f1f5f9") + "; -fx-border-color: " + (isDark ? "#243238" : "#e2e8f0") + "; -fx-border-radius: 6px; -fx-background-radius: 6px; -fx-padding: 8 12;");
-                constText.setWrapText(true);
-
-                problemContentBox.getChildren().addAll(constHeader, constText);
-            }
-
-            List<TestCase> sampleTests = problem.getSampleTests();
-            if (!sampleTests.isEmpty()) {
-                Label cpHeader = new Label("PRACTICE CHECKPOINTS");
-                cpHeader.setStyle("-fx-font-size: 12px; -fx-font-weight: 800; -fx-text-fill: #0089fc; -fx-padding: 6 0 0 0;");
-                problemContentBox.getChildren().add(cpHeader);
-
-                int cpNum = 1;
-                for (TestCase sample : sampleTests) {
-                    VBox cpCard = new VBox(6);
-                    cpCard.setStyle("-fx-background-color: " + (isDark ? "#141b20" : "#f8fafc") + "; -fx-border-color: " + (isDark ? "#28343b" : "#e2e8f0") + "; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 10 14;");
-
-                    Label cpTitle = new Label("Checkpoint " + (cpNum++) + ": " + sample.input());
-                    cpTitle.setStyle("-fx-font-weight: 800; -fx-font-size: 12px; -fx-text-fill: " + (isDark ? "#f1f5f9" : "#0f172a") + ";");
-
-                    Label cpExpected = new Label("Expected: " + sample.expectedOutput());
-                    cpExpected.setStyle("-fx-font-size: 12px; -fx-text-fill: " + (isDark ? "#94a3b8" : "#475569") + ";");
-                    cpExpected.setWrapText(true);
-
-                    cpCard.getChildren().addAll(cpTitle, cpExpected);
-                    problemContentBox.getChildren().add(cpCard);
+            if (cat == CourseCategory.AI_ML) {
+                // 1. Learning Objective Card
+                for (LearningBlock b : blocks) {
+                    if (b instanceof ObjectiveBlock) {
+                        problemContentBox.getChildren().add(b.render(isDark));
+                    }
                 }
+                // 2. Mathematical Intuition & Formula
+                for (LearningBlock b : blocks) {
+                    if (b instanceof FormulaBlock) {
+                        problemContentBox.getChildren().add(b.render(isDark));
+                    }
+                }
+                // 3. Interactive Experiment (Sliders & Live Graph)
+                for (LearningBlock b : blocks) {
+                    if (b instanceof InteractiveExperimentBlock) {
+                        problemContentBox.getChildren().add(b.render(isDark));
+                    }
+                }
+                // 4. Check Your Understanding
+                for (LearningBlock b : blocks) {
+                    if (b instanceof UnderstandingCheckBlock) {
+                        problemContentBox.getChildren().add(b.render(isDark));
+                    }
+                }
+                // 5. Problem Statement & Deliverables
+                renderProblemCoreDetails(problem);
+                // 6. Practice Checkpoints
+                renderPracticeCheckpoints(problem);
+                // 7. Model Evaluation Benchmarks
+                for (LearningBlock b : blocks) {
+                    if (b instanceof ModelEvaluationBlock) {
+                        problemContentBox.getChildren().add(b.render(isDark));
+                    }
+                }
+            } else if (cat == CourseCategory.DATA_SCIENCE) {
+                // 1. Analysis Goal Objective
+                for (LearningBlock b : blocks) {
+                    if (b instanceof ObjectiveBlock) {
+                        problemContentBox.getChildren().add(b.render(isDark));
+                    }
+                }
+                // 2. Dataset Preview Table
+                for (LearningBlock b : blocks) {
+                    if (b instanceof DatasetViewerBlock) {
+                        problemContentBox.getChildren().add(b.render(isDark));
+                    }
+                }
+                // 3. Notebook-Style Pandas & Chart Execution Cell
+                for (LearningBlock b : blocks) {
+                    if (b instanceof DataScienceNotebookBlock) {
+                        problemContentBox.getChildren().add(b.render(isDark));
+                    }
+                }
+                // 4. Problem Statement & Deliverables
+                renderProblemCoreDetails(problem);
+                // 5. Practice Checkpoints
+                renderPracticeCheckpoints(problem);
+                // 6. Understanding & Interpretation Check
+                for (LearningBlock b : blocks) {
+                    if (b instanceof UnderstandingCheckBlock) {
+                        problemContentBox.getChildren().add(b.render(isDark));
+                    }
+                }
+            } else if (cat == CourseCategory.WEB_DEV) {
+                // 1. UI Architecture Objective
+                for (LearningBlock b : blocks) {
+                    if (b instanceof ObjectiveBlock) {
+                        problemContentBox.getChildren().add(b.render(isDark));
+                    }
+                }
+                // 2. Problem Statement & UI Specs
+                renderProblemCoreDetails(problem);
+                // 3. Live Web Preview
+                for (LearningBlock b : blocks) {
+                    if (b instanceof LiveWebPreviewBlock lwp) {
+                        activeArenaWebPreview = lwp;
+                        problemContentBox.getChildren().add(lwp.render(isDark));
+                    }
+                }
+                // 4. Practice Checkpoints
+                renderPracticeCheckpoints(problem);
+            } else if (cat == CourseCategory.APP_DEV) {
+                // 1. Mobile Architecture Objective
+                for (LearningBlock b : blocks) {
+                    if (b instanceof ObjectiveBlock) {
+                        problemContentBox.getChildren().add(b.render(isDark));
+                    }
+                }
+                // 2. Problem Statement & Deliverables
+                renderProblemCoreDetails(problem);
+                // 3. Mobile Device Phone Frame Preview
+                for (LearningBlock b : blocks) {
+                    if (b instanceof MobilePreviewBlock) {
+                        problemContentBox.getChildren().add(b.render(isDark));
+                    }
+                }
+                // 4. Practice Checkpoints
+                renderPracticeCheckpoints(problem);
+            } else if (cat == CourseCategory.GAME_DEV) {
+                // 1. Game Mechanics Objective
+                for (LearningBlock b : blocks) {
+                    if (b instanceof ObjectiveBlock) {
+                        problemContentBox.getChildren().add(b.render(isDark));
+                    }
+                }
+                // 2. 2D Game Engine & Physics Canvas Preview
+                for (LearningBlock b : blocks) {
+                    if (b instanceof GamePreviewBlock) {
+                        problemContentBox.getChildren().add(b.render(isDark));
+                    }
+                }
+                // 3. Problem Statement & Deliverables
+                renderProblemCoreDetails(problem);
+                // 4. Check Understanding
+                for (LearningBlock b : blocks) {
+                    if (b instanceof UnderstandingCheckBlock) {
+                        problemContentBox.getChildren().add(b.render(isDark));
+                    }
+                }
+                // 5. Practice Checkpoints
+                renderPracticeCheckpoints(problem);
+            } else {
+                renderProblemCoreDetails(problem);
+                renderPracticeCheckpoints(problem);
             }
         }
 
@@ -1497,6 +1672,75 @@ public class DsaProblemArenaWindow {
         // Load cached or default starter code
         loadCodeForCurrentProblemAndLanguage();
         clearJudgeResults();
+    }
+
+    private void renderProblemCoreDetails(DsaProblem problem) {
+        Label stmtHeader = new Label("PROBLEM STATEMENT");
+        stmtHeader.setStyle("-fx-font-size: 12px; -fx-font-weight: 800; -fx-text-fill: #0089fc; -fx-padding: 4 0 0 0;");
+
+        Label stmtText = new Label(problem.statement());
+        stmtText.setStyle("-fx-font-size: 13.5px; -fx-line-spacing: 4; -fx-text-fill: " + (isDark ? "#cbd5e1" : "#334155") + ";");
+        stmtText.setWrapText(true);
+
+        problemContentBox.getChildren().addAll(stmtHeader, stmtText);
+
+        if (problem.inputFormat() != null && !problem.inputFormat().isBlank()) {
+            Label reqHeader = new Label("REQUIREMENTS & SPECIFICATIONS");
+            reqHeader.setStyle("-fx-font-size: 12px; -fx-font-weight: 800; -fx-text-fill: #0089fc; -fx-padding: 6 0 0 0;");
+
+            Label reqText = new Label(problem.inputFormat());
+            reqText.setStyle("-fx-font-size: 13px; -fx-line-spacing: 3; -fx-text-fill: " + (isDark ? "#94a3b8" : "#475569") + ";");
+            reqText.setWrapText(true);
+
+            problemContentBox.getChildren().addAll(reqHeader, reqText);
+        }
+
+        if (problem.outputFormat() != null && !problem.outputFormat().isBlank()) {
+            Label delivHeader = new Label("EXPECTED DELIVERABLES");
+            delivHeader.setStyle("-fx-font-size: 12px; -fx-font-weight: 800; -fx-text-fill: #0089fc; -fx-padding: 6 0 0 0;");
+
+            Label delivText = new Label(problem.outputFormat());
+            delivText.setStyle("-fx-font-size: 13px; -fx-line-spacing: 3; -fx-text-fill: " + (isDark ? "#94a3b8" : "#475569") + ";");
+            delivText.setWrapText(true);
+
+            problemContentBox.getChildren().addAll(delivHeader, delivText);
+        }
+
+        if (problem.constraints() != null && !problem.constraints().isBlank()) {
+            Label constHeader = new Label("CONSTRAINTS & TECHNICAL SPEC");
+            constHeader.setStyle("-fx-font-size: 12px; -fx-font-weight: 800; -fx-text-fill: #0089fc; -fx-padding: 6 0 0 0;");
+
+            Label constText = new Label(problem.constraints());
+            constText.setStyle("-fx-font-size: 12.5px; -fx-text-fill: " + (isDark ? "#38bdf8" : "#0284c7") + "; -fx-background-color: " + (isDark ? "#161e24" : "#f1f5f9") + "; -fx-border-color: " + (isDark ? "#243238" : "#e2e8f0") + "; -fx-border-radius: 6px; -fx-background-radius: 6px; -fx-padding: 8 12;");
+            constText.setWrapText(true);
+
+            problemContentBox.getChildren().addAll(constHeader, constText);
+        }
+    }
+
+    private void renderPracticeCheckpoints(DsaProblem problem) {
+        List<TestCase> sampleTests = problem.getSampleTests();
+        if (!sampleTests.isEmpty()) {
+            Label cpHeader = new Label("PRACTICE CHECKPOINTS");
+            cpHeader.setStyle("-fx-font-size: 12px; -fx-font-weight: 800; -fx-text-fill: #0089fc; -fx-padding: 6 0 0 0;");
+            problemContentBox.getChildren().add(cpHeader);
+
+            int cpNum = 1;
+            for (TestCase sample : sampleTests) {
+                VBox cpCard = new VBox(6);
+                cpCard.setStyle("-fx-background-color: " + (isDark ? "#141b20" : "#f8fafc") + "; -fx-border-color: " + (isDark ? "#28343b" : "#e2e8f0") + "; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 10 14;");
+
+                Label cpTitle = new Label("Checkpoint " + (cpNum++) + ": " + sample.input());
+                cpTitle.setStyle("-fx-font-weight: 800; -fx-font-size: 12px; -fx-text-fill: " + (isDark ? "#f1f5f9" : "#0f172a") + ";");
+
+                Label cpExpected = new Label("Expected: " + sample.expectedOutput());
+                cpExpected.setStyle("-fx-font-size: 12px; -fx-text-fill: " + (isDark ? "#94a3b8" : "#475569") + ";");
+                cpExpected.setWrapText(true);
+
+                cpCard.getChildren().addAll(cpTitle, cpExpected);
+                problemContentBox.getChildren().add(cpCard);
+            }
+        }
     }
 
     private VBox buildSampleBox(int num, TestCase sample) {
@@ -1578,15 +1822,18 @@ public class DsaProblemArenaWindow {
         if (currentProblem == null || currentLanguage == null) return;
         String key = currentProblem.id() + "_" + currentLanguage.id();
         String saved = CODE_CACHE.get(key);
+        String codeToLoad;
         if (saved != null) {
-            codeEditorArea.replaceText(saved);
+            codeToLoad = saved;
         } else {
             if (isAlgorithmicTopic(currentTopicKey)) {
-                codeEditorArea.replaceText(currentLanguage.starterTemplate());
+                codeToLoad = currentLanguage.starterTemplate();
             } else {
-                codeEditorArea.replaceText(getPracticalStarterTemplate(currentTopicKey, currentLanguage));
+                codeToLoad = getPracticalStarterTemplate(currentTopicKey, currentLanguage);
             }
         }
+        codeEditorArea.replaceText(codeToLoad);
+        CodeSyntaxHighlighter.applyHighlightingAsync(codeEditorArea, codeToLoad, currentLanguage);
         if (editorFileTabLabel != null) {
             editorFileTabLabel.setText("</> " + currentLanguage.defaultFileName());
         }
@@ -1603,10 +1850,10 @@ public class DsaProblemArenaWindow {
         boolean isAlgo = isAlgorithmicTopic(currentTopicKey);
         if (isAlgo) {
             verdictTitleLabel.setText("Ready to run or judge");
-            verdictStatsLabel.setText("Select language, click ▶ Run to test output or Submit Solution to judge");
+            verdictStatsLabel.setText("Select language, click Run to test output or Submit Solution to judge");
         } else {
             verdictTitleLabel.setText("Exercise Compiler Ready");
-            verdictStatsLabel.setText("Click ▶ Run to execute implementation or Verify Exercise to validate checkpoints");
+            verdictStatsLabel.setText("Click Run to execute implementation or Verify Exercise to validate checkpoints");
         }
         verdictIconLabel.setText("");
         judgingProgressBar.setVisible(false);
@@ -1639,6 +1886,9 @@ public class DsaProblemArenaWindow {
         }
         saveCurrentCode();
         String code = codeEditorArea.getText();
+        if (activeArenaWebPreview != null) {
+            activeArenaWebPreview.updateContent(code);
+        }
 
         boolean isCustom = customInputCheckBox.isSelected();
         String testInput = isCustom ? customInputArea.getText() : (currentProblem.getSampleTests().isEmpty() ? "" : currentProblem.getSampleTests().get(0).input());
@@ -1788,6 +2038,9 @@ public class DsaProblemArenaWindow {
         }
         saveCurrentCode();
         String code = codeEditorArea.getText();
+        if (activeArenaWebPreview != null) {
+            activeArenaWebPreview.updateContent(code);
+        }
 
         setJudgingState(true, "Compiling solution in " + currentLanguage.displayName() + "...");
 

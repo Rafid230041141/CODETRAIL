@@ -78,6 +78,16 @@ public class DsaProblemRepository {
         registerProblems(buildGamePhysicsProblems());
         registerProblems(buildAudioVfxProblems());
         registerProblems(buildGamePublishProblems());
+
+        // Programming Languages topics (8 topics x 5 exercises each = 40 exercises)
+        registerProblems(buildPythonProblems());
+        registerProblems(buildJavaProblems());
+        registerProblems(buildCppProblems());
+        registerProblems(buildCProblems());
+        registerProblems(buildTypeScriptProblems());
+        registerProblems(buildRustProblems());
+        registerProblems(buildGolangProblems());
+        registerProblems(buildSqlLanguageProblems());
     }
 
     private static void registerProblems(List<DsaProblem> problems) {
@@ -150,9 +160,7 @@ public class DsaProblemRepository {
             Map.entry("node.js", "node"),
             Map.entry("express", "node"),
             Map.entry("databases", "database"),
-            Map.entry("postgresql", "database"),
-            Map.entry("mongodb", "database"),
-            Map.entry("sql", "database"),
+            Map.entry("sql", "sql"),
             Map.entry("authentication", "auth"),
             Map.entry("jwt", "auth"),
             Map.entry("oauth", "auth"),
@@ -216,7 +224,23 @@ public class DsaProblemRepository {
             Map.entry("game physics", "game_physics"),
             Map.entry("game audio", "audio_vfx"),
             Map.entry("shaders", "audio_vfx"),
-            Map.entry("game optimization", "game_publish")
+            Map.entry("game optimization", "game_publish"),
+            // Programming Languages Aliases
+            Map.entry("python", "python"),
+            Map.entry("python3", "python"),
+            Map.entry("java", "java"),
+            Map.entry("cpp", "cpp"),
+            Map.entry("c++", "cpp"),
+            Map.entry("c", "c"),
+            Map.entry("typescript", "typescript"),
+            Map.entry("ts", "typescript"),
+            Map.entry("rust", "rust"),
+            Map.entry("golang", "golang"),
+            Map.entry("go", "golang"),
+            Map.entry("sql_fundamentals", "sql"),
+            Map.entry("advanced_sql", "sql"),
+            Map.entry("postgresql", "sql"),
+            Map.entry("mongodb", "database")
     );
 
     public static String getCanonicalTopicKey(String topicKey) {
@@ -6253,4 +6277,548 @@ public class DsaProblemRepository {
         );
     }
 
+
+// =========================================================================
+    // PROGRAMMING LANGUAGES - TOPIC 1: PYTHON (3 Exercises: 1 Easy, 1 Medium, 1 Tough)
+    // =========================================================================
+    private static List<DsaProblem> buildPythonProblems() {
+        String topic = "python";
+        String topicTitle = "Python 3 Foundations & Scripting";
+
+        return List.of(
+                new DsaProblem(
+                        "PY-101",
+                        topic,
+                        topicTitle,
+                        "A. Word Frequency & Dictionary Comprehension",
+                        Difficulty.EASY,
+                        2000,
+                        256,
+                        "Given a line of text, tokenize words, convert to lowercase, and construct a frequency map using dictionary comprehension. Print each unique word and its count formatted as 'word: count', sorted alphabetically by word.",
+                        "A single line of space-separated words (1 <= length <= 1000).",
+                        "Print each unique word and its count as 'word: count' on a new line, sorted alphabetically.",
+                        "Difficulty: Easy | Tech: Python 3, String Parsing, Dictionary Comprehension",
+                        List.of(
+                                new TestCase("apple banana apple cherry banana apple", "apple: 3\nbanana: 2\ncherry: 1", true, "Alphabetical word frequency verified"),
+                                new TestCase("python python python", "python: 3", false),
+                                new TestCase("the quick brown fox jumps over the lazy dog", "brown: 1\ndog: 1\nfox: 1\njumps: 1\nlazy: 1\nover: 1\nquick: 1\nthe: 2", false)
+                        ),
+                        "Use dict comprehension or collections.Counter with sorted() keys for clean, idiomatic code."
+                ),
+                new DsaProblem(
+                        "PY-102",
+                        topic,
+                        topicTitle,
+                        "B. Custom Fibonacci Generator & Stream Filter",
+                        Difficulty.MEDIUM,
+                        2000,
+                        256,
+                        "Implement a Python generator function fibonacci_stream(limit) using 'yield' that yields Fibonacci numbers up to limit. Filter only the even Fibonacci numbers and print them space-separated on a single line.",
+                        "A single positive integer limit (1 <= limit <= 10^9).",
+                        "Print all even Fibonacci numbers <= limit separated by spaces on a single line.",
+                        "Difficulty: Medium | Tech: Python Generators, yield, Stream Filtering",
+                        List.of(
+                                new TestCase("50", "0 2 8 34", true, "Even Fibonacci numbers under 50"),
+                                new TestCase("10", "0 2 8", false),
+                                new TestCase("100", "0 2 8 34", false)
+                        ),
+                        "Generators evaluate lazily, keeping memory consumption O(1) regardless of stream length."
+                ),
+                new DsaProblem(
+                        "PY-103",
+                        topic,
+                        topicTitle,
+                        "C. Matrix Spiral Order & Coordinate Traversal",
+                        Difficulty.HARD,
+                        2000,
+                        256,
+                        "Given an R x C integer matrix, traverse and print all elements in clockwise spiral order starting from top-left (right, down, left, up). Handle arbitrary rectangular dimensions and single-row/column matrices.",
+                        "The first line contains integers R and C (1 <= R, C <= 100).\nThe next R lines each contain C space-separated integers.",
+                        "Print all matrix elements visited in clockwise spiral order separated by spaces on a single line.",
+                        "Difficulty: Tough | Tech: Python 2D Matrix, Boundary Pointers, Coordinate Math",
+                        List.of(
+                                new TestCase("3 3\n1 2 3\n4 5 6\n7 8 9", "1 2 3 6 9 8 7 4 5", true, "3x3 spiral order"),
+                                new TestCase("3 4\n1 2 3 4\n5 6 7 8\n9 10 11 12", "1 2 3 4 8 12 11 10 9 5 6 7", false),
+                                new TestCase("1 4\n10 20 30 40", "10 20 30 40", false)
+                        ),
+                        "Maintain four boundary variables (top, bottom, left, right) and shrink them inward after each edge pass."
+                )
+        );
+    }
+
+    // =========================================================================
+    // PROGRAMMING LANGUAGES - TOPIC 2: JAVA (3 Exercises: 1 Easy, 1 Medium, 1 Tough)
+    // =========================================================================
+    private static List<DsaProblem> buildJavaProblems() {
+        String topic = "java";
+        String topicTitle = "Java Modern OOP & Concurrency";
+
+        return List.of(
+                new DsaProblem(
+                        "JAV-101",
+                        topic,
+                        topicTitle,
+                        "A. Student Grade Summary & Stream Statistics",
+                        Difficulty.EASY,
+                        2000,
+                        256,
+                        "Given n student records consisting of name and score, read the data using java.util.Scanner. Filter students scoring >= 60, sort them in descending order by score (and alphabetically by name on tie), and print each passing student: 'Name: Score'. Finally print 'Average: X.X' (average of passing scores rounded to 1 decimal place). If no students pass, print 'Average: 0.0'.",
+                        "First line contains integer n (1 <= n <= 1000).\nNext n lines each contain 'Name Score' (score is integer 0-100).",
+                        "Print each passing student sorted by score descending, followed by 'Average: X.X'.",
+                        "Difficulty: Easy | Tech: Java Streams, Comparator, Custom Objects, Formatting",
+                        List.of(
+                                new TestCase("4\nAlice 85\nBob 55\nCharlie 90\nDavid 85", "Charlie: 90\nAlice: 85\nDavid: 85\nAverage: 86.7", true, "Stream filtering and averaging"),
+                                new TestCase("2\nJohn 70\nJane 80", "Jane: 80\nJohn: 70\nAverage: 75.0", false),
+                                new TestCase("1\nEve 40", "Average: 0.0", false)
+                        ),
+                        "Leverage Java Streams with Comparator.comparingInt(Student::score).reversed().thenComparing(Student::name)."
+                ),
+                new DsaProblem(
+                        "JAV-102",
+                        topic,
+                        topicTitle,
+                        "B. Polymorphic Bank Account Transaction Engine",
+                        Difficulty.MEDIUM,
+                        2000,
+                        256,
+                        "Model an object-oriented bank account hierarchy with SavingsAccount (earns interest rate on final balance) and CheckingAccount (charges transaction fee per withdrawal). Process an input stream of commands: SAVINGS, CHECKING, DEPOSIT, WITHDRAW, and END. Print the final account balances formatted to 2 decimal places.",
+                        "Input commands terminated by 'END'.\n'SAVINGS initialBalance interestRate'\n'CHECKING initialBalance fee'\n'DEPOSIT amount'\n'WITHDRAW amount'",
+                        "Print each account type and final balance: 'TYPE: X.XX'.",
+                        "Difficulty: Medium | Tech: Java OOP, Abstract Classes, Polymorphism, Encapsulation",
+                        List.of(
+                                new TestCase("SAVINGS 1000 0.05\nDEPOSIT 500\nWITHDRAW 200\nCHECKING 500 2.50\nWITHDRAW 100\nEND", "SAVINGS: 1365.00\nCHECKING: 397.50", true, "Polymorphic account fees and interest"),
+                                new TestCase("CHECKING 100 1.00\nDEPOSIT 50\nEND", "CHECKING: 150.00", false),
+                                new TestCase("SAVINGS 2000 0.10\nEND", "SAVINGS: 2200.00", false)
+                        ),
+                        "Use polymorphism with an abstract BankAccount superclass containing abstract void applyPeriodEnd()."
+                ),
+                new DsaProblem(
+                        "JAV-103",
+                        topic,
+                        topicTitle,
+                        "C. Thread-Safe LRU Cache Simulation",
+                        Difficulty.HARD,
+                        2000,
+                        256,
+                        "Implement a Least Recently Used (LRU) Cache of capacity C. Process 'PUT key value' and 'GET key' operations. When capacity is exceeded, evict the least recently accessed key. For each GET query, print the value, or -1 if the key does not exist.",
+                        "First line contains capacity C and number of operations N (1 <= C <= 1000, 1 <= N <= 10^5).\nNext N lines contain 'PUT key value' or 'GET key'.",
+                        "For each GET operation, print the integer value on a new line.",
+                        "Difficulty: Tough | Tech: Java Collections, HashMap, Doubly Linked List, O(1) Cache Eviction",
+                        List.of(
+                                new TestCase("2 6\nPUT 1 10\nPUT 2 20\nGET 1\nPUT 3 30\nGET 2\nGET 3", "10\n-1\n30", true, "LRU eviction sequence"),
+                                new TestCase("1 4\nPUT 5 100\nGET 5\nPUT 6 200\nGET 5", "100\n-1", false),
+                                new TestCase("3 5\nPUT 1 1\nPUT 2 2\nPUT 3 3\nGET 1\nGET 4", "1\n-1", false)
+                        ),
+                        "Combine a HashMap with a custom doubly linked list to achieve strict O(1) get and put time complexity."
+                )
+        );
+    }
+
+    // =========================================================================
+    // PROGRAMMING LANGUAGES - TOPIC 3: C++ (3 Exercises: 1 Easy, 1 Medium, 1 Tough)
+    // =========================================================================
+    private static List<DsaProblem> buildCppProblems() {
+        String topic = "cpp";
+        String topicTitle = "C++ Modern Systems & STL Architecture";
+
+        return List.of(
+                new DsaProblem(
+                        "CPP-101",
+                        topic,
+                        topicTitle,
+                        "A. Vector Deduplication & Custom STL Sorting",
+                        Difficulty.EASY,
+                        2000,
+                        256,
+                        "Read n integers into an std::vector<int>. Sort the unique elements by frequency of occurrence descending (highest frequency first); on frequency ties, sort by numeric value ascending. Print the resulting unique elements space-separated.",
+                        "First line contains integer n (1 <= n <= 10^5).\nSecond line contains n space-separated integers.",
+                        "Print the unique elements ordered by frequency descending (ties broken by value ascending).",
+                        "Difficulty: Easy | Tech: C++ STL, std::vector, std::unordered_map, std::sort, Lambdas",
+                        List.of(
+                                new TestCase("8\n4 5 6 5 4 3 5 4", "4 5 3 6", true, "Frequency sort with tie breaker"),
+                                new TestCase("5\n1 2 2 3 3", "2 3 1", false),
+                                new TestCase("3\n10 10 10", "10", false)
+                        ),
+                        "Count occurrences with std::unordered_map<int, int>, then sort a vector of unique keys using a custom lambda."
+                ),
+                new DsaProblem(
+                        "CPP-102",
+                        topic,
+                        topicTitle,
+                        "B. Expression Evaluation with Stacks & RAII",
+                        Difficulty.MEDIUM,
+                        2000,
+                        256,
+                        "Evaluate a valid mathematical expression string containing non-negative integers, addition (+), subtraction (-), multiplication (*), and parentheses (() and ()) using operator and operand stacks with standard precedence rules.",
+                        "A single string expression without spaces or with space-separated tokens.",
+                        "Print the single integer result of the evaluated expression.",
+                        "Difficulty: Medium | Tech: C++ Stacks, Operator Precedence, String Parsing",
+                        List.of(
+                                new TestCase("3+2*(4-1)", "9", true, "Parentheses and precedence"),
+                                new TestCase("(10+20)*3", "90", false),
+                                new TestCase("100-5*10+2", "52", false)
+                        ),
+                        "Use two stacks (one for values, one for operators). Push operators based on precedence hierarchy."
+                ),
+                new DsaProblem(
+                        "CPP-103",
+                        topic,
+                        topicTitle,
+                        "C. Sliding Window Maximum with Monotonic Deque",
+                        Difficulty.HARD,
+                        2000,
+                        256,
+                        "Given an array of n integers and a sliding window of size k moving from left to right, find the maximum value in each window position. Achieve optimal O(n) total time complexity using std::deque.",
+                        "First line contains integers n and k (1 <= k <= n <= 10^5).\nSecond line contains n space-separated integers.",
+                        "Print the maximum element of each sliding window position separated by spaces on a single line.",
+                        "Difficulty: Tough | Tech: C++ Deque, Monotonic Queue, O(n) Amortized Complexity",
+                        List.of(
+                                new TestCase("8 3\n1 3 -1 -3 5 3 6 7", "3 3 5 5 6 7", true, "Sliding window maximum"),
+                                new TestCase("4 2\n10 5 2 7", "10 5 7", false),
+                                new TestCase("5 5\n1 2 3 4 5", "5", false)
+                        ),
+                        "Maintain indices in a deque in decreasing order of element values; remove out-of-window indices from the front."
+                )
+        );
+    }
+
+    // =========================================================================
+    // PROGRAMMING LANGUAGES - TOPIC 4: C (3 Exercises: 1 Easy, 1 Medium, 1 Tough)
+    // =========================================================================
+    private static List<DsaProblem> buildCProblems() {
+        String topic = "c";
+        String topicTitle = "C Low-Level Programming & Memory";
+
+        return List.of(
+                new DsaProblem(
+                        "C-101",
+                        topic,
+                        topicTitle,
+                        "A. String Word Reversal with Pointer Arithmetic",
+                        Difficulty.EASY,
+                        2000,
+                        256,
+                        "Read a line of text. Using pointer arithmetic only (no array indexing str[i] and no string reverse library functions), reverse the order of the words while keeping the characters in each word in normal order.",
+                        "A single line of space-separated words (1 <= length <= 1000).",
+                        "Print the sentence with its words in reverse order.",
+                        "Difficulty: Easy | Tech: C Pointers, Pointer Arithmetic, Two-Pointer Technique",
+                        List.of(
+                                new TestCase("the quick brown fox", "fox brown quick the", true, "Word order reversed"),
+                                new TestCase("hello world", "world hello", false),
+                                new TestCase("programming in c", "c in programming", false)
+                        ),
+                        "Reverse the entire character buffer first using pointers, then reverse each individual word back in-place."
+                ),
+                new DsaProblem(
+                        "C-102",
+                        topic,
+                        topicTitle,
+                        "B. Bitwise Flags & Binary Subsets",
+                        Difficulty.MEDIUM,
+                        2000,
+                        256,
+                        "Given an integer N (1 <= N <= 10), generate all 2^N binary subsets using bitwise shifts (1 << i) and bitwise AND (&) masking. Print each subset as a comma-separated list enclosed in brackets '[x, y]', ordered by integer bitmask value.",
+                        "A single integer N (1 <= N <= 10).",
+                        "Print 2^N lines containing each generated subset.",
+                        "Difficulty: Medium | Tech: C Bitwise Operators, Bitmasks, Combinatorics",
+                        List.of(
+                                new TestCase("3", "[]\n[1]\n[2]\n[1, 2]\n[3]\n[1, 3]\n[2, 3]\n[1, 2, 3]", true, "All 8 subsets for N=3"),
+                                new TestCase("2", "[]\n[1]\n[2]\n[1, 2]", false),
+                                new TestCase("1", "[]\n[1]", false)
+                        ),
+                        "Iterate mask from 0 to (1 << N) - 1 and test whether the i-th bit is set via (mask & (1 << (i - 1)))."
+                ),
+                new DsaProblem(
+                        "C-103",
+                        topic,
+                        topicTitle,
+                        "C. Dynamic Heap Memory Pool & Block Packing",
+                        Difficulty.HARD,
+                        2000,
+                        256,
+                        "Implement a first-fit dynamic heap allocator simulation on a fixed buffer of size M. Process 'ALLOC id size' and 'FREE id' commands. Allocate at the first contiguous free offset large enough; if no block fits, output 'OUT_OF_MEMORY'. Print the final status of each allocation.",
+                        "First line contains arena size M and command count K (1 <= M <= 10^6, 1 <= K <= 1000).\nNext K lines contain 'ALLOC id size' or 'FREE id'.",
+                        "Print each allocation result or error on a new line.",
+                        "Difficulty: Tough | Tech: C Dynamic Memory, First-Fit Allocation, Pointer Arithmetic, Fragmentation",
+                        List.of(
+                                new TestCase("100 4\nALLOC 1 30\nALLOC 2 40\nFREE 1\nALLOC 3 20", "ALLOCATED 1 0 30\nALLOCATED 2 30 40\nFREED 1\nALLOCATED 3 0 20", true, "Heap block allocation and reuse"),
+                                new TestCase("50 2\nALLOC 1 60\nALLOC 2 10", "OUT_OF_MEMORY\nALLOCATED 2 0 10", false),
+                                new TestCase("30 2\nALLOC 1 10\nFREE 1", "ALLOCATED 1 0 10\nFREED 1", false)
+                        ),
+                        "Maintain a linked list of free and allocated memory segments with base offset and size."
+                )
+        );
+    }
+
+    // =========================================================================
+    // PROGRAMMING LANGUAGES - TOPIC 5: TYPESCRIPT (3 Exercises: 1 Easy, 1 Medium, 1 Tough)
+    // =========================================================================
+    private static List<DsaProblem> buildTypeScriptProblems() {
+        String topic = "typescript";
+        String topicTitle = "TypeScript & Modern JavaScript";
+
+        return List.of(
+                new DsaProblem(
+                        "TS-101",
+                        topic,
+                        topicTitle,
+                        "A. Deep Object Flattener & Key Path Mapping",
+                        Difficulty.EASY,
+                        2000,
+                        256,
+                        "Write a TypeScript/JavaScript function flattenObject(obj) that transforms a nested JSON object into a flat object where nested keys are joined by dots (e.g., 'user.address.city'). Print the resulting flattened JSON string.",
+                        "A valid JSON string containing arbitrarily nested objects.",
+                        "Print the single-line JSON string representation of the flattened object.",
+                        "Difficulty: Easy | Tech: TypeScript, Recursion, Object Inspection, String Key Paths",
+                        List.of(
+                                new TestCase("{\"user\":{\"name\":\"Alice\",\"address\":{\"city\":\"London\",\"zip\":\"EC1\"}}}", "{\"user.name\":\"Alice\",\"user.address.city\":\"London\",\"user.address.zip\":\"EC1\"}", true, "Nested JSON flattened"),
+                                new TestCase("{\"a\":{\"b\":10}}", "{\"a.b\":10}", false),
+                                new TestCase("{\"x\":1,\"y\":2}", "{\"x\":1,\"y\":2}", false)
+                        ),
+                        "Recurse through object properties; if value is an object (and not array/null), pass the accumulated prefix."
+                ),
+                new DsaProblem(
+                        "TS-102",
+                        topic,
+                        topicTitle,
+                        "B. Debounce Implementation with Immediate Execution",
+                        Difficulty.MEDIUM,
+                        2000,
+                        256,
+                        "Implement a robust debounce(fn, delay, immediate) higher-order utility in TypeScript/JavaScript. Given a burst of timestamped function call attempts, determine which timestamps result in actual function executions.",
+                        "First line contains delay in ms and boolean immediate flag (e.g. '50 true').\nSecond line contains space-separated integer timestamps (in ms) of incoming events.",
+                        "Print space-separated timestamps when the debounced function actually triggers.",
+                        "Difficulty: Medium | Tech: TypeScript Closures, Timers, Debouncing, Higher-Order Functions",
+                        List.of(
+                                new TestCase("50 false\n0 10 20 100", "70 150", true, "Trailing debounce calls"),
+                                new TestCase("50 true\n0 10 20 100", "0 100", false),
+                                new TestCase("100 false\n0 50", "150", false)
+                        ),
+                        "Clear existing timeout via clearTimeout(timerId) on each burst invocation before scheduling the trailing call."
+                ),
+                new DsaProblem(
+                        "TS-103",
+                        topic,
+                        topicTitle,
+                        "C. Strongly-Typed Async Task Priority Queue",
+                        Difficulty.HARD,
+                        2000,
+                        256,
+                        "Build an asynchronous task scheduler processing tasks with priority values (higher number = higher priority). The scheduler can run at most K concurrent tasks. When a worker finishes, it must pick the waiting task with the highest priority. Print the completion order of task IDs.",
+                        "First line contains concurrency limit K and task count N.\nNext N lines each contain 'taskId priority durationMs'.",
+                        "Print the task IDs in the exact order their executions complete.",
+                        "Difficulty: Tough | Tech: TypeScript Async/Await, Priority Queue, Concurrency Throttling",
+                        List.of(
+                                new TestCase("2 4\nT1 1 100\nT2 5 20\nT3 2 50\nT4 8 30", "T2 T4 T1 T3", true, "Priority-directed async execution"),
+                                new TestCase("1 3\nA 1 10\nB 10 10\nC 5 10", "A B C", false),
+                                new TestCase("2 2\nX 1 20\nY 2 20", "X Y", false)
+                        ),
+                        "Keep an active promise set of size <= K and a binary max-heap of waiting tasks ordered by priority."
+                )
+        );
+    }
+
+    // =========================================================================
+    // PROGRAMMING LANGUAGES - TOPIC 6: RUST (3 Exercises: 1 Easy, 1 Medium, 1 Tough)
+    // =========================================================================
+    private static List<DsaProblem> buildRustProblems() {
+        String topic = "rust";
+        String topicTitle = "Rust Memory Safety & Systems";
+
+        return List.of(
+                new DsaProblem(
+                        "RS-101",
+                        topic,
+                        topicTitle,
+                        "A. Zero-Allocation String Slice Sanitizer",
+                        Difficulty.EASY,
+                        2000,
+                        256,
+                        "Write an idiomatic string sanitization routine in Rust. Given a raw input string, trim whitespace, replace non-alphanumeric characters with underscores, and convert to lowercase. If the sanitized result begins with a digit, prepend an underscore '_'.",
+                        "A single line of text (1 <= length <= 500).",
+                        "Print the sanitized identifier string.",
+                        "Difficulty: Easy | Tech: Rust Slices, Char Iterators, String Formatting",
+                        List.of(
+                                new TestCase("  Hello World 2026! ", "hello_world_2026_", true, "Whitespace trimmed and sanitized"),
+                                new TestCase("123_variable", "_123_variable", false),
+                                new TestCase("user-name", "user_name", false)
+                        ),
+                        "Use s.trim().chars().map(...) to process character streams safely without unsafe operations."
+                ),
+                new DsaProblem(
+                        "RS-102",
+                        topic,
+                        topicTitle,
+                        "B. Safe RLE Compression with Pattern Matching",
+                        Difficulty.MEDIUM,
+                        2000,
+                        256,
+                        "Implement Run-Length Encoding (RLE) in Rust without unsafe code. Given a string like 'AAABBBCCDA', compress consecutive duplicate characters into count-letter pairs: '3A3B2C1D1A'. If input is empty, output 'EMPTY'.",
+                        "A single uppercase string (0 <= length <= 10^5).",
+                        "Print the RLE compressed string, or 'EMPTY' if the input was empty.",
+                        "Difficulty: Medium | Tech: Rust Pattern Matching, Iterators, Enums, Error Handling",
+                        List.of(
+                                new TestCase("AAABBBCCDA", "3A3B2C1D1A", true, "RLE run-length encoding"),
+                                new TestCase("WWWWWW", "6W", false),
+                                new TestCase("", "EMPTY", false)
+                        ),
+                        "Pattern match on consecutive characters using peekable iterators to count identical runs cleanly."
+                ),
+                new DsaProblem(
+                        "RS-103",
+                        topic,
+                        topicTitle,
+                        "C. Circular Dependency Free Graph with Rc & Weak",
+                        Difficulty.HARD,
+                        2000,
+                        256,
+                        "Build a directed task graph in Rust. Check whether a valid topological ordering exists for N tasks given directed edges. If a circular dependency is detected, output 'CYCLE_DETECTED'. Otherwise, output the topological sort order (lexicographically smallest on ties).",
+                        "First line contains task count N and edge count M.\nNext M lines contain directed edges 'u v' (u must finish before v).",
+                        "Print space-separated task IDs in valid execution order, or 'CYCLE_DETECTED'.",
+                        "Difficulty: Tough | Tech: Rust Memory Safety, Kahn's Algorithm, Cycle Detection",
+                        List.of(
+                                new TestCase("4 4\n1 2\n2 3\n1 3\n3 4", "1 2 3 4", true, "Valid DAG topological order"),
+                                new TestCase("2 2\n1 2\n2 1", "CYCLE_DETECTED", false),
+                                new TestCase("3 2\n1 2\n1 3", "1 2 3", false)
+                        ),
+                        "Use Kahn's algorithm with an in-degree array and a binary heap to break ties deterministically."
+                )
+        );
+    }
+
+    // =========================================================================
+    // PROGRAMMING LANGUAGES - TOPIC 7: GOLANG (3 Exercises: 1 Easy, 1 Medium, 1 Tough)
+    // =========================================================================
+    private static List<DsaProblem> buildGolangProblems() {
+        String topic = "golang";
+        String topicTitle = "Go (Golang) Microservices & Concurrency";
+
+        return List.of(
+                new DsaProblem(
+                        "GO-101",
+                        topic,
+                        topicTitle,
+                        "A. Word Frequency Counter with Maps & Structs",
+                        Difficulty.EASY,
+                        2000,
+                        256,
+                        "Parse words from an input sentence into a Go map[string]int. Sort unique words by frequency descending; on ties, sort alphabetically ascending. Output each word and its count formatted as 'word: count'.",
+                        "A single line of space-separated words (1 <= length <= 1000).",
+                        "Print each unique word and its count as 'word: count' on a new line.",
+                        "Difficulty: Easy | Tech: Go Maps, Slices, Structs, sort.Slice",
+                        List.of(
+                                new TestCase("go gopher go concurrency gopher go", "go: 3\ngopher: 2\nconcurrency: 1", true, "Frequency sorted descending"),
+                                new TestCase("microservices in go", "go: 1\nin: 1\nmicroservices: 1", false),
+                                new TestCase("test test test", "test: 3", false)
+                        ),
+                        "Store map entries into a slice of custom Pair structs, then sort using sort.Slice."
+                ),
+                new DsaProblem(
+                        "GO-102",
+                        topic,
+                        topicTitle,
+                        "B. Goroutine Pipeline & Prime Sieve Filter",
+                        Difficulty.MEDIUM,
+                        2000,
+                        256,
+                        "Implement a concurrent prime number generator in Go using goroutines and channel pipelines. Generate integers 2 to N, filter non-primes concurrently, and print all primes <= N space-separated on a single line.",
+                        "A single positive integer N (2 <= N <= 1000).",
+                        "Print all prime numbers <= N separated by spaces.",
+                        "Difficulty: Medium | Tech: Go Channels, Goroutines, Concurrency Pipelines",
+                        List.of(
+                                new TestCase("30", "2 3 5 7 11 13 17 19 23 29", true, "Primes up to 30"),
+                                new TestCase("10", "2 3 5 7", false),
+                                new TestCase("2", "2", false)
+                        ),
+                        "Daisy-chain goroutines where each discovered prime spawns a new filtering goroutine reading from its predecessor."
+                ),
+                new DsaProblem(
+                        "GO-103",
+                        topic,
+                        topicTitle,
+                        "C. Resilient Worker Pool with Context Cancellation",
+                        Difficulty.HARD,
+                        2000,
+                        256,
+                        "Simulate a concurrent worker pool in Go processing N tasks with duration across W workers. If total elapsed time exceeds timeoutMs, cancel unfinished jobs via context.WithTimeout. Output 'Completed: X, Cancelled: Y'.",
+                        "First line contains N, W, and timeoutMs.\nNext N lines contain task durations in milliseconds.",
+                        "Print 'Completed: X, Cancelled: Y' reflecting finished vs cancelled task counts.",
+                        "Difficulty: Tough | Tech: Go Context, sync.WaitGroup, Worker Pools, Select Cancellation",
+                        List.of(
+                                new TestCase("6 2 60\n20\n20\n20\n40\n40\n40", "Completed: 4, Cancelled: 2", true, "Context deadline cancellation"),
+                                new TestCase("3 3 100\n10\n10\n10", "Completed: 3, Cancelled: 0", false),
+                                new TestCase("4 1 20\n30\n30\n30\n30", "Completed: 0, Cancelled: 4", false)
+                        ),
+                        "Use select on ctx.Done() inside each worker loop to detect cancellation immediately."
+                )
+        );
+    }
+
+    // =========================================================================
+    // PROGRAMMING LANGUAGES - TOPIC 8: SQL (3 Exercises: 1 Easy, 1 Medium, 1 Tough)
+    // =========================================================================
+    private static List<DsaProblem> buildSqlLanguageProblems() {
+        String topic = "sql";
+        String topicTitle = "SQL Relational Database Querying & Modeling";
+
+        return List.of(
+                new DsaProblem(
+                        "SQL-101",
+                        topic,
+                        topicTitle,
+                        "A. Department Salary Aggregation & Filtering",
+                        Difficulty.EASY,
+                        2000,
+                        256,
+                        "Write a SQL query on an employees(id, name, department, salary) table to find the department name, headcount, and average salary (rounded to 2 decimal places) for departments with headcount > 2. Sort by average salary descending.",
+                        "Schema: employees(id INT, name VARCHAR, department VARCHAR, salary DECIMAL).",
+                        "Columns: department, total_emp, avg_salary sorted by avg_salary DESC.",
+                        "Difficulty: Easy | Tech: SQL GROUP BY, HAVING, COUNT, AVG, ROUND",
+                        List.of(
+                                new TestCase("SELECT department, COUNT(*) AS total_emp, ROUND(AVG(salary), 2) AS avg_salary FROM employees GROUP BY department HAVING COUNT(*) > 2 ORDER BY avg_salary DESC;", "Department aggregation with HAVING filter", true, "SQL aggregate query verified"),
+                                new TestCase("Filter out small departments (<= 2 headcount)", "Departments with fewer than 3 employees omitted", false),
+                                new TestCase("Verify descending order", "Highest average salary department appears first", false)
+                        ),
+                        "WHERE filters rows prior to grouping; HAVING filters aggregated groups."
+                ),
+                new DsaProblem(
+                        "SQL-102",
+                        topic,
+                        topicTitle,
+                        "B. Second Highest Salary & Ranking with Window Functions",
+                        Difficulty.MEDIUM,
+                        2000,
+                        256,
+                        "Write a SQL query using window ranking functions (DENSE_RANK) or subqueries to return the second highest distinct salary from an employees table as 'SecondHighestSalary'. If no second highest salary exists, return NULL.",
+                        "Schema: employees(id INT, salary INT).",
+                        "Single column: SecondHighestSalary (or NULL if fewer than 2 distinct salaries).",
+                        "Difficulty: Medium | Tech: SQL Window Functions, DENSE_RANK, Subqueries, NULL Handling",
+                        List.of(
+                                new TestCase("SELECT MAX(salary) AS SecondHighestSalary FROM employees WHERE salary < (SELECT MAX(salary) FROM employees);", "Second highest distinct salary returned", true, "Window ranking verified"),
+                                new TestCase("Single employee row table", "Returns NULL cleanly", false),
+                                new TestCase("All employees share same salary", "Returns NULL cleanly", false)
+                        ),
+                        "DENSE_RANK() OVER (ORDER BY salary DESC) assigns consecutive ranks without skipping values on ties."
+                ),
+                new DsaProblem(
+                        "SQL-103",
+                        topic,
+                        topicTitle,
+                        "C. Consecutive Active User Logins & Window Lead/Lag",
+                        Difficulty.HARD,
+                        2000,
+                        256,
+                        "Given a user_logins(user_id, login_date) table, find all user_ids who logged in on at least 3 consecutive days. Return distinct user_ids sorted in ascending order.",
+                        "Schema: user_logins(user_id INT, login_date DATE).",
+                        "Single column: user_id of users with 3+ consecutive day login streaks, sorted ASC.",
+                        "Difficulty: Tough | Tech: SQL Window Functions, LEAD, LAG, DATE_ADD, Self Joins",
+                        List.of(
+                                new TestCase("SELECT DISTINCT user_id FROM (SELECT user_id, login_date, LAG(login_date, 1) OVER (PARTITION BY user_id ORDER BY login_date) AS prev_date, LEAD(login_date, 1) OVER (PARTITION BY user_id ORDER BY login_date) AS next_date FROM user_logins) t WHERE DATEDIFF(login_date, prev_date) = 1 AND DATEDIFF(next_date, login_date) = 1;", "Users with 3 consecutive login days identified", true, "Window lead/lag streak detection verified"),
+                                new TestCase("Users with sporadic 2-day logins only", "Omitted from output result", false),
+                                new TestCase("Deduplication of users with multiple streaks", "Distinct user IDs returned without duplicates", false)
+                        ),
+                        "Use LAG(login_date, 1) and LEAD(login_date, 1) partitioned by user_id to inspect contiguous calendar dates."
+                )
+        );
+    }
 }

@@ -1,6 +1,7 @@
 package application;
 
 import application.client.dsa.judge.CodeSyntaxHighlighter;
+import application.client.dsa.judge.Difficulty;
 import application.client.dsa.judge.DsaProblem;
 import application.client.dsa.judge.DsaProblemArenaWindow;
 import application.client.dsa.judge.DsaProblemRepository;
@@ -31,27 +32,51 @@ public class DsaRoutingVerificationTest {
     }
 
     private static void testAllCanonicalTopicsHaveExercises() {
-        System.out.println("[TEST 1] Verifying all 56 canonical topics have 5 exercises...");
-        int totalExpected = 56;
+        System.out.println("[TEST 1] Verifying 64 canonical topics and 304 exercises...");
+        int totalExpected = 64;
         List<String> canonicalKeys = DsaProblemArenaWindow.CANONICAL_TOPIC_KEYS;
 
         if (canonicalKeys.size() != totalExpected) {
-            throw new AssertionError("Expected 56 canonical topics but found: " + canonicalKeys.size());
+            throw new AssertionError("Expected 64 canonical topics but found: " + canonicalKeys.size());
+        }
+
+        List<String> newCanonicalKeys = List.of(
+                "python", "java", "cpp", "c", "typescript", "rust", "golang", "sql");
+        if (!canonicalKeys.containsAll(newCanonicalKeys)) {
+            throw new AssertionError("Recovered canonical topic list is missing one or more new keys: "
+                    + newCanonicalKeys);
         }
 
         int count = 0;
+        int exerciseCount = 0;
         for (String topicKey : canonicalKeys) {
             List<DsaProblem> problems = DsaProblemRepository.getProblemsForTopic(topicKey);
-            if (problems.size() != 5) {
-                throw new AssertionError("Topic '" + topicKey + "' expected 5 problems, found: " + problems.size());
+            int expectedProblems = newCanonicalKeys.contains(topicKey) ? 3 : 5;
+            if (problems.size() != expectedProblems) {
+                throw new AssertionError("Topic '" + topicKey + "' expected " + expectedProblems
+                        + " problems, found: " + problems.size());
+            }
+            if (newCanonicalKeys.contains(topicKey)) {
+                var difficulties = problems.stream()
+                        .map(DsaProblem::difficulty)
+                        .collect(java.util.stream.Collectors.toSet());
+                if (difficulties.size() != 3
+                        || !difficulties.containsAll(List.of(Difficulty.EASY, Difficulty.MEDIUM, Difficulty.HARD))) {
+                    throw new AssertionError("Topic '" + topicKey
+                            + "' must have exactly one Easy, Medium, and Tough exercise: " + difficulties);
+                }
             }
             DsaProblem first = problems.get(0);
             if (!first.topicKey().equalsIgnoreCase(topicKey)) {
                 throw new AssertionError("Topic '" + topicKey + "' problem topic mismatch: " + first.topicKey());
             }
             count++;
+            exerciseCount += problems.size();
         }
-        System.out.println("  ✓ All " + count + " canonical topics have exactly 5 exercises each (280 exercises total).");
+        if (exerciseCount != 304) {
+            throw new AssertionError("Expected 304 total exercises but found: " + exerciseCount);
+        }
+        System.out.println("  ✓ All 56 legacy topics have 5 exercises and 8 language topics have 3 each (304 total).");
     }
 
     private static void testNoLooseSubstringHijacking() {
@@ -141,8 +166,11 @@ public class DsaRoutingVerificationTest {
         assertEquals(ProgrammingLanguage.PYTHON, DsaProblemArenaWindow.getDefaultLanguageForTopic("deep_learning"));
         assertEquals(ProgrammingLanguage.PYTHON, DsaProblemArenaWindow.getDefaultLanguageForTopic("pygame"));
 
-        assertEquals(ProgrammingLanguage.JAVASCRIPT, DsaProblemArenaWindow.getDefaultLanguageForTopic("html5"));
-        assertEquals(ProgrammingLanguage.JAVASCRIPT, DsaProblemArenaWindow.getDefaultLanguageForTopic("css3"));
+        assertEquals(ProgrammingLanguage.HTML, DsaProblemArenaWindow.getDefaultLanguageForTopic("html5"));
+        assertEquals(ProgrammingLanguage.CSS, DsaProblemArenaWindow.getDefaultLanguageForTopic("css3"));
+        assertEquals(ProgrammingLanguage.SQL, DsaProblemArenaWindow.getDefaultLanguageForTopic("database"));
+        assertEquals(ProgrammingLanguage.SQL, DsaProblemArenaWindow.getDefaultLanguageForTopic("sql_analytics"));
+        assertEquals(ProgrammingLanguage.SQL, DsaProblemArenaWindow.getDefaultLanguageForTopic("sqlite"));
         assertEquals(ProgrammingLanguage.JAVASCRIPT, DsaProblemArenaWindow.getDefaultLanguageForTopic("javascript"));
         assertEquals(ProgrammingLanguage.JAVASCRIPT, DsaProblemArenaWindow.getDefaultLanguageForTopic("react"));
         assertEquals(ProgrammingLanguage.JAVASCRIPT, DsaProblemArenaWindow.getDefaultLanguageForTopic("node"));
@@ -162,7 +190,23 @@ public class DsaRoutingVerificationTest {
         assertEquals(ProgrammingLanguage.C, DsaProblemArenaWindow.getDefaultLanguageForTopic("c"));
         assertEquals(ProgrammingLanguage.CSHARP, DsaProblemArenaWindow.getDefaultLanguageForTopic("csharp"));
 
-        System.out.println("  ✓ Authoritative topic languages verified.");
+        // Exercise-level language verification
+        DsaProblem wh101 = DsaProblemRepository.getProblemById("WH-101");
+        DsaProblem wc101 = DsaProblemRepository.getProblemById("WC-101");
+        DsaProblem wdb101 = DsaProblemRepository.getProblemById("WDB-101");
+        DsaProblem sa101 = DsaProblemRepository.getProblemById("SA-101");
+
+        assertNotNull(wh101);
+        assertNotNull(wc101);
+        assertNotNull(wdb101);
+        assertNotNull(sa101);
+
+        assertEquals(ProgrammingLanguage.HTML, DsaProblemArenaWindow.getDefaultLanguageForExercise(wh101, "html5"));
+        assertEquals(ProgrammingLanguage.CSS, DsaProblemArenaWindow.getDefaultLanguageForExercise(wc101, "css3"));
+        assertEquals(ProgrammingLanguage.SQL, DsaProblemArenaWindow.getDefaultLanguageForExercise(wdb101, "database"));
+        assertEquals(ProgrammingLanguage.SQL, DsaProblemArenaWindow.getDefaultLanguageForExercise(sa101, "sql_analytics"));
+
+        System.out.println("  ✓ Authoritative topic and exercise languages verified.");
     }
 
     private static void testAlgorithmicVsPracticalClassification() {
@@ -180,19 +224,14 @@ public class DsaRoutingVerificationTest {
             }
         }
 
-        // Language topics (C, C++, Java, Python, C#)
-        if (!DsaProblemArenaWindow.isAlgorithmicTopic("cpp")) throw new AssertionError("cpp should be algorithmic");
-        if (!DsaProblemArenaWindow.isAlgorithmicTopic("c")) throw new AssertionError("c should be algorithmic");
-        if (!DsaProblemArenaWindow.isAlgorithmicTopic("java")) throw new AssertionError("java should be algorithmic");
-        if (!DsaProblemArenaWindow.isAlgorithmicTopic("python")) throw new AssertionError("python should be algorithmic");
-
-        // Non-DSA topics (Web Dev, App Dev, AI/ML, Data Science, Game Dev) must NOT be algorithmic
+        // Practical topics (including the recovered language-practice keys) must NOT be algorithmic
         List<String> nonDsaKeys = List.of(
                 "html5", "css3", "javascript", "react", "node", "database", "auth", "deploy",
                 "flutter", "reactnative", "kotlin", "swift", "statemgmt", "mobileapi", "sqlite", "publish",
                 "ml_foundations", "math_ai", "scikit", "deep_learning", "vision", "nlp", "genai", "mlops",
                 "numpy", "pandas", "eda", "statistics", "feature_eng", "bigdata", "sql_analytics", "bi_dashboards",
-                "math_games", "pygame", "unity_basics", "unity_3d", "unreal", "game_physics", "audio_vfx", "game_publish"
+                "math_games", "pygame", "unity_basics", "unity_3d", "unreal", "game_physics", "audio_vfx", "game_publish",
+                "python", "java", "cpp", "c", "typescript", "rust", "golang", "sql"
         );
         for (String k : nonDsaKeys) {
             if (DsaProblemArenaWindow.isAlgorithmicTopic(k)) {
@@ -200,7 +239,7 @@ public class DsaRoutingVerificationTest {
             }
         }
 
-        System.out.println("  ✓ All 16 DSA and 40 practical courses classified with 100% precision.");
+        System.out.println("  ✓ All 16 DSA and 48 practical courses classified with 100% precision.");
     }
 
     private static void testPracticalStarterTemplates() {
@@ -215,11 +254,21 @@ public class DsaRoutingVerificationTest {
             throw new AssertionError("HTML5 template should not contain readFileSync(0)");
         }
 
-        // CSS3 should provide CSS styles, NOT readFileSync(0)
-        String cssCode = DsaProblemArenaWindow.getPracticalStarterTemplate("css3", ProgrammingLanguage.JAVASCRIPT);
-        if (!cssCode.contains("/* Modern CSS3 Exercise */")) {
-            throw new AssertionError("CSS3 template missing expected header");
+        // CSS3 and SQL templates should be empty per user requirement
+        String cssCode = DsaProblemArenaWindow.getPracticalStarterTemplate("css3", ProgrammingLanguage.CSS);
+        if (!cssCode.isEmpty()) {
+            throw new AssertionError("CSS3 template should be empty, got: " + cssCode);
         }
+        assertEquals("", ProgrammingLanguage.CSS.starterTemplate());
+
+        String sqlCode = DsaProblemArenaWindow.getPracticalStarterTemplate("database", ProgrammingLanguage.SQL);
+        if (!sqlCode.isEmpty()) {
+            throw new AssertionError("SQL template should be empty, got: " + sqlCode);
+        }
+        assertEquals("", ProgrammingLanguage.SQL.starterTemplate());
+
+        // HTML template is kept intact
+        assertEquals(true, ProgrammingLanguage.HTML.starterTemplate().contains("<!DOCTYPE html>"));
 
         // NumPy should provide numpy/pandas pipeline, NOT sys.stdin.read().split()
         String npCode = DsaProblemArenaWindow.getPracticalStarterTemplate("numpy", ProgrammingLanguage.PYTHON);
@@ -242,11 +291,11 @@ public class DsaRoutingVerificationTest {
             throw new AssertionError("Pygame template missing import pygame");
         }
 
-        System.out.println("  ✓ Domain-specific practical templates verified without competitive stdin overhead.");
+        System.out.println("  ✓ Domain-specific practical templates verified (CSS/SQL blank, HTML5 preserved).");
     }
 
     private static void testSyntaxHighlightingAndLanguageVisibility() {
-        System.out.println("[TEST 8] Verifying syntax highlighting for #include, header paths, and language labels...");
+        System.out.println("[TEST 8] Verifying syntax highlighting for C++, HTML, CSS, SQL, and language labels...");
 
         // 1. C++ #include <iostream>
         String cppCode = "#include <iostream>\nusing namespace std;\nint main() {\n    // comment\n    return 0;\n}";
@@ -271,14 +320,57 @@ public class DsaRoutingVerificationTest {
             throw new AssertionError("Expected // comment to produce 'comment' style span.");
         }
 
-        // 2. Programming language display names
+        // 2. HTML syntax highlighting
+        String testHtml = DsaProblemArenaWindow.getPracticalStarterTemplate("html5", ProgrammingLanguage.HTML);
+        StyleSpans<Collection<String>> htmlSpans = CodeSyntaxHighlighter.computeHighlighting(testHtml, ProgrammingLanguage.HTML);
+        boolean htmlHasKeyword = false;
+        boolean htmlHasType = false;
+        boolean htmlHasComment = false;
+        for (var span : htmlSpans) {
+            if (span.getStyle().contains("keyword")) htmlHasKeyword = true;
+            if (span.getStyle().contains("type-name")) htmlHasType = true;
+            if (span.getStyle().contains("comment")) htmlHasComment = true;
+        }
+        if (!htmlHasKeyword || !htmlHasType || !htmlHasComment) {
+            throw new AssertionError("HTML highlighting missing expected token spans: kw=" + htmlHasKeyword + ", type=" + htmlHasType + ", comment=" + htmlHasComment);
+        }
+
+        // 3. CSS syntax highlighting
+        String testCss = "/* Comment */\n@media (max-width: 600px) {\n  .card { color: #fff; margin: 10px; }\n}";
+        StyleSpans<Collection<String>> cssSpans = CodeSyntaxHighlighter.computeHighlighting(testCss, ProgrammingLanguage.CSS);
+        boolean cssHasComment = false;
+        boolean cssHasPreproc = false;
+        boolean cssHasClass = false;
+        for (var span : cssSpans) {
+            if (span.getStyle().contains("comment")) cssHasComment = true;
+            if (span.getStyle().contains("preprocessor")) cssHasPreproc = true;
+            if (span.getStyle().contains("class-name")) cssHasClass = true;
+        }
+        if (!cssHasComment || !cssHasPreproc || !cssHasClass) {
+            throw new AssertionError("CSS highlighting missing expected token spans: comment=" + cssHasComment + ", preproc=" + cssHasPreproc + ", class=" + cssHasClass);
+        }
+
+        // 4. SQL syntax highlighting
+        String testSql = "-- Query\nSELECT id, name FROM users WHERE score > 80;";
+        StyleSpans<Collection<String>> sqlSpans = CodeSyntaxHighlighter.computeHighlighting(testSql, ProgrammingLanguage.SQL);
+        boolean sqlHasComment = false;
+        boolean sqlHasKeyword = false;
+        for (var span : sqlSpans) {
+            if (span.getStyle().contains("comment")) sqlHasComment = true;
+            if (span.getStyle().contains("keyword")) sqlHasKeyword = true;
+        }
+        if (!sqlHasComment || !sqlHasKeyword) {
+            throw new AssertionError("SQL highlighting missing expected token spans: comment=" + sqlHasComment + ", kw=" + sqlHasKeyword);
+        }
+
+        // 5. Programming language display names
         for (ProgrammingLanguage lang : ProgrammingLanguage.values()) {
             if (lang.displayName() == null || lang.displayName().isBlank()) {
                 throw new AssertionError("ProgrammingLanguage " + lang + " has empty displayName!");
             }
         }
 
-        System.out.println("  ✓ #include and header tags properly highlighted as preprocessor & header (NOT comment).");
+        System.out.println("  ✓ C++, HTML, CSS, SQL highlighting verified with zero parser errors.");
         System.out.println("  ✓ Language display names verified for high-contrast ComboBox presentation.");
     }
 
@@ -292,6 +384,12 @@ public class DsaRoutingVerificationTest {
     private static void assertNull(Object actual) {
         if (actual != null) {
             throw new AssertionError("Expected null but got [" + actual + "]");
+        }
+    }
+
+    private static void assertNotNull(Object actual) {
+        if (actual == null) {
+            throw new AssertionError("Expected non-null object");
         }
     }
 }

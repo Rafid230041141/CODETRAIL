@@ -77,8 +77,8 @@ public final class CodeSyntaxHighlighter {
             "String", "Integer", "Double", "Boolean", "Long", "Character", "Float", "Short", "Byte",
             "System", "Scanner", "Math", "List", "Map", "Set", "ArrayList", "HashMap", "HashSet",
             "Queue", "Deque", "ArrayDeque", "Stack", "PriorityQueue", "Arrays", "Collections", "StringBuilder",
-            "vector", "string", "pair", "queue", "deque", "stack", "priority_queue", "cin", "cout", "endl",
-            "printf", "scanf", "print", "input", "Console", "console", "Array", "Object", "Number", "std"
+            "vector", "string", "pair", "queue", "deque", "stack", "priority_queue",
+            "printf", "scanf", "print", "input", "Console", "console", "Array", "Object", "Number"
     };
 
     private static final Map<ProgrammingLanguage, Pattern> PATTERNS = new EnumMap<>(ProgrammingLanguage.class);
@@ -90,6 +90,49 @@ public final class CodeSyntaxHighlighter {
     }
 
     private static Pattern buildPatternForLanguage(ProgrammingLanguage lang) {
+        if (lang == ProgrammingLanguage.HTML) {
+            return Pattern.compile(
+                    "(?<COMMENT><!--[\\s\\S]*?-->)"
+                    + "|(?<INCLUDE>$^)"
+                    + "|(?<PREPROCESSOR><!DOCTYPE[^>]*>)"
+                    + "|(?<STRING>\"([^\"\\\\]|\\\\.)*\"|'([^'\\\\]|\\\\.)*')"
+                    + "|(?<KEYWORD></?[a-zA-Z0-9:-]+|/?>)"
+                    + "|(?<CLASS>(?<=\\bclass=\")[^\"]*|(?<=\\bid=\")[^\"]*)"
+                    + "|(?<TYPE>\\b[a-zA-Z0-9_:-]+(?=\\s*=))"
+                    + "|(?<NUMBER>$^)"
+                    + "|(?<OPERATOR>$^)"
+                    + "|(?<METHOD>$^)"
+            );
+        }
+        if (lang == ProgrammingLanguage.CSS) {
+            return Pattern.compile(
+                    "(?<COMMENT>/\\*[\\s\\S]*?\\*/)"
+                    + "|(?<INCLUDE>$^)"
+                    + "|(?<PREPROCESSOR>@[a-zA-Z-]+)"
+                    + "|(?<STRING>\"([^\"\\\\]|\\\\.)*\"|'([^'\\\\]|\\\\.)*')"
+                    + "|(?<KEYWORD>\\b[a-zA-Z-]+(?=\\s*:))"
+                    + "|(?<CLASS>\\.[a-zA-Z0-9_-]+|#[a-zA-Z0-9_-]+)"
+                    + "|(?<TYPE>:[a-zA-Z:-]+|::[a-zA-Z-]+)"
+                    + "|(?<NUMBER>#[0-9a-fA-F]{3,8}|\\b\\d+(?:\\.\\d+)?(?:px|em|rem|%|vh|vw|s|ms|deg)?\\b)"
+                    + "|(?<OPERATOR>$^)"
+                    + "|(?<METHOD>\\b[a-zA-Z-]+\\([^)]*\\))"
+            );
+        }
+        if (lang == ProgrammingLanguage.SQL) {
+            return Pattern.compile(
+                    "(?<COMMENT>--[^\\n]*|/\\*[\\s\\S]*?\\*/)"
+                    + "|(?<INCLUDE>$^)"
+                    + "|(?<PREPROCESSOR>$^)"
+                    + "|(?<STRING>'([^'\\\\]|\\\\.)*'|\"([^\"\\\\]|\\\\.)*\")"
+                    + "|(?<KEYWORD>(?i)\\b(SELECT|FROM|WHERE|INSERT|INTO|UPDATE|DELETE|CREATE|TABLE|ALTER|DROP|JOIN|INNER|LEFT|RIGHT|FULL|OUTER|CROSS|ON|GROUP|BY|ORDER|HAVING|LIMIT|OFFSET|UNION|ALL|DISTINCT|AS|AND|OR|NOT|IN|BETWEEN|LIKE|IS|NULL|CASE|WHEN|THEN|ELSE|END|PRIMARY|KEY|FOREIGN|REFERENCES|INDEX|VIEW|WITH|VALUES|SET|DEFAULT|CHECK|UNIQUE|CONSTRAINT|EXISTS|ASC|DESC|CASCADE|TRANSACTION|COMMIT|ROLLBACK)\\b)"
+                    + "|(?<CLASS>(?i)(?<=\\bTABLE\\s+)[a-zA-Z0-9_]+|(?<=\\bINTO\\s+)[a-zA-Z0-9_]+)"
+                    + "|(?<TYPE>(?i)\\b(INT|INTEGER|BIGINT|SMALLINT|TINYINT|VARCHAR|CHAR|TEXT|BOOLEAN|BOOL|TIMESTAMP|DATE|TIME|FLOAT|DOUBLE|DECIMAL|NUMERIC|REAL|SERIAL|BIGSERIAL|BLOB|JSON|JSONB)\\b)"
+                    + "|(?<NUMBER>\\b\\d+(?:\\.\\d+)?\\b)"
+                    + "|(?<OPERATOR>(<=|>=|!=|<>|=|<|>|\\+|-|\\*|/|%))"
+                    + "|(?<METHOD>(?i)\\b(COUNT|SUM|AVG|MIN|MAX|ROUND|COALESCE|CONCAT|SUBSTRING|LENGTH|NOW|ROW_NUMBER|RANK|DENSE_RANK|LAG|LEAD)(?=\\s*\\())"
+            );
+        }
+
         String[] keywords = switch (lang) {
             case CPP -> CPP_KEYWORDS;
             case C -> CPP_KEYWORDS;
@@ -97,6 +140,7 @@ public final class CodeSyntaxHighlighter {
             case JAVA -> JAVA_KEYWORDS;
             case CSHARP -> CSHARP_KEYWORDS;
             case JAVASCRIPT -> JS_KEYWORDS;
+            case HTML, CSS, SQL -> new String[0];
         };
 
         String kwPattern = "\\b(" + String.join("|", keywords) + ")\\b";
@@ -107,6 +151,8 @@ public final class CodeSyntaxHighlighter {
         String commentPattern = lang == ProgrammingLanguage.PYTHON
                 ? "#[^\\n]*"
                 : "//[^\\n]*|/\\*(?:.|[\\r\\n])*?\\*/";
+        String numberPattern = "\\b\\d+(?:\\.\\d+)?(?:[eE][+-]?\\d+)?[fFlLuU]?\\b|\\b0[xX][0-9a-fA-F]+\\b";
+        String operatorPattern = "<<|>>|<=|>=|==|!=|&&|\\|\\||\\+\\+|--|->|[+\\-*/%=&|^!<>?:]";
 
         String includePattern = (lang == ProgrammingLanguage.CPP || lang == ProgrammingLanguage.C)
                 ? "(?<INCLUDE>#\\s*include\\b(?:\\s*<[^>\\n]*>|\\s*\"[^\"\\n]*\")?)"
@@ -124,7 +170,17 @@ public final class CodeSyntaxHighlighter {
                 + "|(?<CLASS>" + classPattern + ")"
                 + "|(?<TYPE>" + typePattern + ")"
                 + "|(?<METHOD>" + methodPattern + ")"
+                + "|(?<NUMBER>" + numberPattern + ")"
+                + "|(?<OPERATOR>" + operatorPattern + ")"
         );
+    }
+
+    private static String getGroup(Matcher matcher, String groupName) {
+        try {
+            return matcher.group(groupName);
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
     }
 
     public static StyleSpans<Collection<String>> computeHighlighting(String text, ProgrammingLanguage lang) {
@@ -137,8 +193,8 @@ public final class CodeSyntaxHighlighter {
         StyleSpansBuilder<Collection<String>> spansBuilder = new StyleSpansBuilder<>();
 
         while (matcher.find()) {
-            if (matcher.group("INCLUDE") != null) {
-                String incText = matcher.group("INCLUDE");
+            String incText = getGroup(matcher, "INCLUDE");
+            if (incText != null) {
                 int incStart = matcher.start();
                 int bracketIdx = incText.indexOf('<');
                 if (bracketIdx == -1) bracketIdx = incText.indexOf('"');
@@ -163,20 +219,24 @@ public final class CodeSyntaxHighlighter {
             }
 
             String styleClass;
-            if (matcher.group("COMMENT") != null) {
+            if (getGroup(matcher, "COMMENT") != null) {
                 styleClass = "comment";
-            } else if (matcher.group("PREPROCESSOR") != null) {
+            } else if (getGroup(matcher, "PREPROCESSOR") != null) {
                 styleClass = "preprocessor";
-            } else if (matcher.group("STRING") != null) {
+            } else if (getGroup(matcher, "STRING") != null) {
                 styleClass = "string";
-            } else if (matcher.group("KEYWORD") != null) {
+            } else if (getGroup(matcher, "KEYWORD") != null) {
                 styleClass = "keyword";
-            } else if (matcher.group("CLASS") != null) {
+            } else if (getGroup(matcher, "CLASS") != null) {
                 styleClass = "class-name";
-            } else if (matcher.group("TYPE") != null) {
+            } else if (getGroup(matcher, "TYPE") != null) {
                 styleClass = "type-name";
-            } else if (matcher.group("METHOD") != null) {
+            } else if (getGroup(matcher, "METHOD") != null) {
                 styleClass = "method-name";
+            } else if (getGroup(matcher, "NUMBER") != null) {
+                styleClass = "number";
+            } else if (getGroup(matcher, "OPERATOR") != null) {
+                styleClass = "operator";
             } else {
                 styleClass = "plain";
             }

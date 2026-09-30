@@ -32,7 +32,8 @@ public class TopicService {
             "app-development",
             "ai-ml",
             "data-science",
-            "game-development");
+            "game-development",
+            "database");
 
     private final TopicRepository topics;
     private final LessonRepository lessons;

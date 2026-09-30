@@ -439,7 +439,7 @@ public class LanguagesTopicsWindow {
         arenaHeaderBtn.getStyleClass().add("dsa-toolbar-arena-btn");
         arenaHeaderBtn.setOnAction(e -> {
             boolean isDark = stage.getScene() != null && stage.getScene().getRoot().getStyleClass().contains("dark-theme");
-            DsaProblemArenaWindow.show(stage, isDark, "arrays", null, ProgrammingLanguage.PYTHON);
+            DsaProblemArenaWindow.show(stage, isDark, "python", null, ProgrammingLanguage.PYTHON);
         });
 
         Region spacer = new Region();
@@ -483,6 +483,8 @@ public class LanguagesTopicsWindow {
 
         Label eyebrow = new Label("CURRICULUM");
         eyebrow.getStyleClass().add("section-eyebrow");
+        eyebrow.setGraphic(application.client.util.LucideIcons.icon("list-tree", 13, true));
+        eyebrow.setGraphicTextGap(6);
 
         HBox navRow = new HBox(6);
         Button allModulesBtn = new Button("All Modules (8)");
@@ -505,6 +507,8 @@ public class LanguagesTopicsWindow {
 
         Label todoTitle = new Label("TO DO LIST");
         todoTitle.getStyleClass().add("continue-sidebar-header");
+        todoTitle.setGraphic(application.client.util.LucideIcons.icon("play", 11, true));
+        todoTitle.setGraphicTextGap(5);
 
         Region todoSpacer = new Region();
         HBox.setHgrow(todoSpacer, Priority.ALWAYS);
@@ -576,7 +580,7 @@ public class LanguagesTopicsWindow {
         arenaSidebarBtn.setMaxWidth(Double.MAX_VALUE);
         arenaSidebarBtn.setOnAction(e -> {
             boolean isDark = stage.getScene() != null && stage.getScene().getRoot().getStyleClass().contains("dark-theme");
-            DsaProblemArenaWindow.show(stage, isDark, "arrays", null, ProgrammingLanguage.PYTHON);
+            DsaProblemArenaWindow.show(stage, isDark, "python", null, ProgrammingLanguage.PYTHON);
         });
 
         sidebar.getChildren().addAll(eyebrow, navRow, arenaSidebarBtn, todoScroll, status);
@@ -611,9 +615,7 @@ public class LanguagesTopicsWindow {
                 }
             } catch (Throwable ignored) {}
         }
-        Label emojiLabel = new Label(topic.icon());
-        emojiLabel.setStyle("-fx-font-size: 18px;");
-        return emojiLabel;
+        return application.client.util.LucideIcons.categoryIcon(topic.title(), 18, true);
     }
 
     private static Node getTopicSmallIconNode(LanguagesTopic topic) {
@@ -631,9 +633,7 @@ public class LanguagesTopicsWindow {
                 }
             } catch (Throwable ignored) {}
         }
-        Label emojiLabel = new Label(topic.icon());
-        emojiLabel.setStyle("-fx-font-size: 13px;");
-        return emojiLabel;
+        return application.client.util.LucideIcons.categoryIcon(topic.title(), 14, true);
     }
 
     private static String getTopicImageResource(String moduleKey) {
@@ -710,6 +710,8 @@ public class LanguagesTopicsWindow {
 
         Button startButton = new Button("Start learning");
         startButton.getStyleClass().add("start-learning-button");
+        startButton.setGraphic(application.client.util.LucideIcons.icon("play", 12, true));
+        startButton.setGraphicTextGap(6);
         startButton.setMaxWidth(Double.MAX_VALUE);
         startButton.setOnAction(event -> {
             event.consume();
@@ -724,7 +726,7 @@ public class LanguagesTopicsWindow {
         compilerBtn.setOnAction(event -> {
             event.consume();
             boolean isDark = stage.getScene() != null && stage.getScene().getRoot().getStyleClass().contains("dark-theme");
-            DsaProblemArenaWindow.show(stage, isDark, "arrays", null, getProgrammingLanguageForModule(topic.moduleKey()));
+            DsaProblemArenaWindow.show(stage, isDark, topic.moduleKey(), null, getProgrammingLanguageForModule(topic.moduleKey()));
         });
 
         HBox btnRow = new HBox(6, startButton, compilerBtn);
@@ -736,12 +738,26 @@ public class LanguagesTopicsWindow {
 
         card.getChildren().addAll(thumbnailPane, body);
 
-        Rectangle clip = new Rectangle();
-        clip.setArcWidth(28.0);
-        clip.setArcHeight(28.0);
-        clip.widthProperty().bind(card.widthProperty());
-        clip.heightProperty().bind(card.heightProperty());
-        card.setClip(clip);
+        // Smooth 14px rounded corners clipping the top thumbnail only
+        Rectangle imgClip = new Rectangle();
+        imgClip.setArcWidth(28.0);
+        imgClip.setArcHeight(28.0);
+        imgClip.widthProperty().bind(thumbnailPane.widthProperty());
+        imgClip.heightProperty().bind(thumbnailPane.heightProperty().add(14.0));
+        thumbnailPane.setClip(imgClip);
+
+        card.hoverProperty().addListener((obs, wasHovered, isHovered) -> {
+            boolean isDark = stage.getScene() != null && stage.getScene().getRoot().getStyleClass().contains("dark-theme");
+            if (isHovered) {
+                if (isDark) {
+                    card.setStyle("-fx-border-color: #38bdf8; -fx-border-width: 1.5px; -fx-effect: dropshadow(gaussian, rgba(56, 189, 248, 0.65), 20, 0.25, 0, 4); -fx-background-color: #242e34;");
+                } else {
+                    card.setStyle("-fx-border-color: #0089fc; -fx-border-width: 1.5px; -fx-effect: dropshadow(gaussian, rgba(0, 137, 252, 0.28), 18, 0.15, 0, 4); -fx-background-color: #ffffff;");
+                }
+            } else {
+                card.setStyle("");
+            }
+        });
 
         card.setOnMouseClicked(event -> {
             stage.close();
@@ -755,7 +771,7 @@ public class LanguagesTopicsWindow {
         MenuItem compilerItem = new MenuItem("💻 Open in Language Compiler & Editor");
         compilerItem.setOnAction(e -> {
             boolean isDark = stage.getScene() != null && stage.getScene().getRoot().getStyleClass().contains("dark-theme");
-            DsaProblemArenaWindow.show(stage, isDark, "arrays", null, getProgrammingLanguageForModule(topic.moduleKey()));
+            DsaProblemArenaWindow.show(stage, isDark, topic.moduleKey(), null, getProgrammingLanguageForModule(topic.moduleKey()));
         });
         MenuItem copyItem = new MenuItem("📋 Copy Video URL");
         copyItem.setOnAction(e -> copyToClipboard(topic.getVideoUrl()));
@@ -811,8 +827,11 @@ public class LanguagesTopicsWindow {
         if (lower.contains("java") && !lower.contains("javascript")) return ProgrammingLanguage.JAVA;
         if (lower.contains("cpp") || lower.contains("c++")) return ProgrammingLanguage.CPP;
         if (lower.contains("c_") || lower.contains("low_level") || lower.contains("pointers") || lower.equals("c")) return ProgrammingLanguage.C;
-        if (lower.contains("typescript") || lower.contains("javascript") || lower.contains("js")) return ProgrammingLanguage.JAVASCRIPT;
+        if (lower.contains("typescript") || lower.contains("javascript") || lower.contains("js") || lower.equals("ts")) return ProgrammingLanguage.JAVASCRIPT;
         if (lower.contains("csharp") || lower.contains("c#") || lower.contains("dotnet")) return ProgrammingLanguage.CSHARP;
+        if (lower.contains("sql")) return ProgrammingLanguage.SQL;
+        if (lower.contains("rust")) return ProgrammingLanguage.CPP;
+        if (lower.contains("golang") || lower.contains("go")) return ProgrammingLanguage.CPP;
         return ProgrammingLanguage.PYTHON;
     }
 }

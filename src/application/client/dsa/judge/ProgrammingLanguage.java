@@ -133,6 +133,64 @@ public enum ProgrammingLanguage {
 
             main();
             """
+    ),
+    HTML(
+            "html",
+            "HTML5",
+            ".html",
+            "index.html",
+            false,
+            """
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>CodeTrail Web Project</title>
+                <style>
+                    body {
+                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                        margin: 20px;
+                        background: #0f172a;
+                        color: #f8fafc;
+                        line-height: 1.6;
+                    }
+                    .container {
+                        max-width: 800px;
+                        margin: 0 auto;
+                        padding: 24px;
+                        background: #1e293b;
+                        border-radius: 8px;
+                        border: 1px solid #334155;
+                    }
+                    h1 { color: #38bdf8; margin-top: 0; }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <!-- Build your semantic HTML5 solution here -->
+                    <h1>Project Component</h1>
+                    <p>Develop and style your web component in real time.</p>
+                </div>
+            </body>
+            </html>
+            """
+    ),
+    CSS(
+            "css",
+            "CSS3",
+            ".css",
+            "style.css",
+            false,
+            ""
+    ),
+    SQL(
+            "sql",
+            "SQL",
+            ".sql",
+            "query.sql",
+            false,
+            ""
     );
 
     private final String id;
